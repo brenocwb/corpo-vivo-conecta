@@ -321,6 +321,50 @@ export type Database = {
           },
         ]
       }
+      google_calendar_integration: {
+        Row: {
+          access_token_encrypted: string | null
+          calendar_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          refresh_token_encrypted: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          calendar_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          calendar_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_calendar_integration_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_meetings: {
         Row: {
           created_at: string
@@ -502,35 +546,56 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
+          baptism_date: string | null
+          birth_date: string | null
           church_id: string | null
+          conversion_date: string | null
           created_at: string
           email: string
+          emergency_contact: string | null
+          emergency_phone: string | null
           full_name: string
           id: string
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          supervisor_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          address?: string | null
+          baptism_date?: string | null
+          birth_date?: string | null
           church_id?: string | null
+          conversion_date?: string | null
           created_at?: string
           email: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
           full_name: string
           id?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          supervisor_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          address?: string | null
+          baptism_date?: string | null
+          birth_date?: string | null
           church_id?: string | null
+          conversion_date?: string | null
           created_at?: string
           email?: string
+          emergency_contact?: string | null
+          emergency_phone?: string | null
           full_name?: string
           id?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          supervisor_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -540,6 +605,13 @@ export type Database = {
             columns: ["church_id"]
             isOneToOne: false
             referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -565,7 +637,7 @@ export type Database = {
         | "novo_convertido"
         | "grupo_sobrecarregado"
         | "encontro_atrasado"
-      user_role: "admin" | "lider" | "membro"
+      user_role: "admin" | "lider" | "membro" | "pastor" | "missionario"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -700,7 +772,7 @@ export const Constants = {
         "grupo_sobrecarregado",
         "encontro_atrasado",
       ],
-      user_role: ["admin", "lider", "membro"],
+      user_role: ["admin", "lider", "membro", "pastor", "missionario"],
     },
   },
 } as const

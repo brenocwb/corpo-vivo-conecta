@@ -8,8 +8,15 @@ interface Profile {
   full_name: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'lider' | 'membro';
+  role: 'admin' | 'lider' | 'membro' | 'pastor' | 'missionario';
   church_id?: string;
+  supervisor_id?: string;
+  birth_date?: string;
+  address?: string;
+  emergency_contact?: string;
+  emergency_phone?: string;
+  baptism_date?: string;
+  conversion_date?: string;
 }
 
 interface AuthContextType {

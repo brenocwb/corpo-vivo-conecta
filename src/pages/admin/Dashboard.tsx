@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { Users, Home, BookOpen, Activity } from 'lucide-react';
+import { Users, Home, BookOpen, Activity, UserPlus, BarChart3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { profile } = useAuth();
@@ -89,10 +90,18 @@ const AdminDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button className="w-full justify-start">
-                <Users className="mr-2 h-4 w-4" />
-                Gerenciar Membros
-              </Button>
+              <Link to="/admin/cadastros" className="block">
+                <Button className="w-full justify-start">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Cadastros
+                </Button>
+              </Link>
+              <Link to="/admin/relatorios" className="block">
+                <Button className="w-full justify-start" variant="outline">
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  Relatórios
+                </Button>
+              </Link>
               <Button className="w-full justify-start" variant="outline">
                 <Home className="mr-2 h-4 w-4" />
                 Grupos Familiares
