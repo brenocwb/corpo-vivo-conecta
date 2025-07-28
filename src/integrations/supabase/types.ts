@@ -321,6 +321,48 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          church_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          event_date: string
+          id: string
+          is_recurring: boolean
+          location: string | null
+          recurrence_pattern: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          church_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_date: string
+          id?: string
+          is_recurring?: boolean
+          location?: string | null
+          recurrence_pattern?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          church_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_date?: string
+          id?: string
+          is_recurring?: boolean
+          location?: string | null
+          recurrence_pattern?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       google_calendar_integration: {
         Row: {
           access_token_encrypted: string | null
@@ -447,6 +489,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      group_visitors: {
+        Row: {
+          created_at: string
+          follow_up_done: boolean
+          group_id: string
+          id: string
+          meeting_id: string | null
+          notes: string | null
+          visitor_email: string | null
+          visitor_name: string
+          visitor_phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          follow_up_done?: boolean
+          group_id: string
+          id?: string
+          meeting_id?: string | null
+          notes?: string | null
+          visitor_email?: string | null
+          visitor_name: string
+          visitor_phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          follow_up_done?: boolean
+          group_id?: string
+          id?: string
+          meeting_id?: string | null
+          notes?: string | null
+          visitor_email?: string | null
+          visitor_name?: string
+          visitor_phone?: string | null
+        }
+        Relationships: []
       }
       house_groups: {
         Row: {
@@ -615,6 +693,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      whatsapp_integration: {
+        Row: {
+          api_token_encrypted: string | null
+          church_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          phone_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_token_encrypted?: string | null
+          church_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          phone_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_token_encrypted?: string | null
+          church_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          phone_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

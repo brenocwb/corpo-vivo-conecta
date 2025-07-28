@@ -368,19 +368,63 @@ const CadastrosPage = () => {
           <TabsContent value="eventos">
             <Card>
               <CardHeader>
-                <CardTitle>Gerenciar Eventos</CardTitle>
+                <CardTitle>Cadastrar Evento</CardTitle>
                 <CardDescription>
                   Eventos especiais, cultos e reuniões
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Em desenvolvimento</h3>
-                  <p className="text-muted-foreground">
-                    Sistema de eventos será implementado em breve
-                  </p>
-                </div>
+                <form className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="event_title">Título do Evento *</Label>
+                      <Input
+                        id="event_title"
+                        placeholder="Ex: Culto de Domingo"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="event_date">Data e Hora *</Label>
+                      <Input
+                        id="event_date"
+                        type="datetime-local"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="event_location">Local</Label>
+                      <Input
+                        id="event_location"
+                        placeholder="Ex: Igreja Central"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="event_recurring">Evento Recorrente</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Não</SelectItem>
+                          <SelectItem value="weekly">Semanal</SelectItem>
+                          <SelectItem value="monthly">Mensal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="event_description">Descrição</Label>
+                    <Textarea
+                      id="event_description"
+                      placeholder="Detalhes sobre o evento..."
+                      rows={3}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Cadastrar Evento
+                  </Button>
+                </form>
               </CardContent>
             </Card>
           </TabsContent>
@@ -394,18 +438,62 @@ const CadastrosPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <Plus className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Google Calendar</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Sincronize reuniões dos grupos familiares com o Google Agenda
-                  </p>
-                  <Button variant="outline" disabled>
-                    Conectar Google Calendar
-                  </Button>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Funcionalidade será implementada em breve
-                  </p>
+                <div className="space-y-6">
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="font-semibold">Google Calendar</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Status: Não conectado
+                        </p>
+                      </div>
+                      <Button>
+                        Conectar
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-muted rounded-full"></div>
+                        <span className="text-sm">Sincronização de reuniões de grupos</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-muted rounded-full"></div>
+                        <span className="text-sm">Notificações automáticas</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-muted rounded-full"></div>
+                        <span className="text-sm">Lembretes personalizados</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="font-semibold">WhatsApp Business</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Status: Não configurado
+                        </p>
+                      </div>
+                      <Button variant="outline">
+                        Configurar
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-muted rounded-full"></div>
+                        <span className="text-sm">Lembretes de reuniões</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-muted rounded-full"></div>
+                        <span className="text-sm">Acompanhamento de visitantes</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-muted rounded-full"></div>
+                        <span className="text-sm">Alertas automáticos</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
