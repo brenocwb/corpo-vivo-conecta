@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Plus, Users, Home, Calendar } from 'lucide-react';
-import Navbar from '@/components/navigation/Navbar';
+import Navbar from '../../components/navigation/Navbar';
 
 const CadastrosPage = () => {
   const { profile } = useAuth();
