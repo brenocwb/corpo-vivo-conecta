@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, TrendingUp, Calendar, MapPin, Download } from 'lucide-react';
+import Navbar from '@/components/navigation/Navbar';
 
 const RelatoriosPage = () => {
   const [stats, setStats] = useState({
@@ -137,6 +138,7 @@ const RelatoriosPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <Navbar />
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-8">
           <div>

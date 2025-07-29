@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Calendar, MapPin, Users, Plus } from 'lucide-react';
+import Navbar from '@/components/navigation/Navbar';
 
 const LiderGrupos = () => {
   const { profile } = useAuth();
@@ -11,8 +12,9 @@ const LiderGrupos = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Meus Grupos Familiares</h1>

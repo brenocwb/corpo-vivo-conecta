@@ -3,13 +3,15 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Users, Home, BookOpen, Activity, UserPlus, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Navbar from '@/components/navigation/Navbar';
 
 const AdminDashboard = () => {
   const { profile } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Painel Administrativo</h1>
@@ -102,14 +104,18 @@ const AdminDashboard = () => {
                   Relatórios
                 </Button>
               </Link>
-              <Button className="w-full justify-start" variant="outline">
-                <Home className="mr-2 h-4 w-4" />
-                Grupos Familiares
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <BookOpen className="mr-2 h-4 w-4" />
-                Material de Estudo
-              </Button>
+              <Link to="/admin/grupos" className="block">
+                <Button className="w-full justify-start" variant="outline">
+                  <Home className="mr-2 h-4 w-4" />
+                  Grupos Familiares
+                </Button>
+              </Link>
+              <Link to="/admin/estudos" className="block">
+                <Button className="w-full justify-start" variant="outline">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Material de Estudo
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 

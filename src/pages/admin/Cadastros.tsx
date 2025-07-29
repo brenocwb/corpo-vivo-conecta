@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Plus, Users, Home, Calendar } from 'lucide-react';
+import Navbar from '@/components/navigation/Navbar';
 
 const CadastrosPage = () => {
   const { profile } = useAuth();
@@ -138,6 +139,7 @@ const CadastrosPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <Navbar />
       <div className="container mx-auto p-6">
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">

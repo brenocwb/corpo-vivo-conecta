@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCadastros from "./pages/admin/Cadastros";
 import AdminRelatorios from "./pages/admin/Relatorios";
+import AdminGrupos from "./pages/admin/Grupos";
+import AdminEstudos from "./pages/admin/Estudos";
 import LiderGrupos from "./pages/lider/Grupos";
 import LiderDiscipulados from "./pages/lider/Discipulados";
 import LiderReunioes from "./pages/lider/Reunioes";
@@ -30,10 +32,12 @@ const App = () => (
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/cadastros" element={<AdminCadastros />} />
             <Route path="/admin/relatorios" element={<AdminRelatorios />} />
-          <Route path="/lider/grupos" element={<LiderGrupos />} />
-          <Route path="/lider/discipulados" element={<LiderDiscipulados />} />
-          <Route path="/lider/reunioes" element={<LiderReunioes />} />
-          <Route path="/meu-perfil" element={<MembroPerfil />} />
+            <Route path="/admin/grupos" element={<AdminGrupos />} />
+            <Route path="/admin/estudos" element={<AdminEstudos />} />
+            <Route path="/lider/grupos" element={<LiderGrupos />} />
+            <Route path="/lider/discipulados" element={<LiderDiscipulados />} />
+            <Route path="/lider/reunioes" element={<LiderReunioes />} />
+            <Route path="/meu-perfil" element={<MembroPerfil />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
