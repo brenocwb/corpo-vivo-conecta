@@ -41,21 +41,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
           // Fetch user profile
-          setTimeout(async () => {
-            const { data: profileData } = await supabase
+          try {
+            const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
               .eq('user_id', session.user.id)
               .single();
             
-            setProfile(profileData);
+            console.log('Profile data:', profileData, 'Error:', error);
+            
+            if (error) {
+              console.error('Error fetching profile:', error);
+            }
+            
+            setProfile(profileData || null);
             setLoading(false);
-          }, 0);
+          } catch (err) {
+            console.error('Exception fetching profile:', err);
+            setProfile(null);
+            setLoading(false);
+          }
         } else {
           setProfile(null);
           setLoading(false);
@@ -65,6 +76,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session);
       setSession(session);
       setUser(session?.user ?? null);
       if (!session) setLoading(false);

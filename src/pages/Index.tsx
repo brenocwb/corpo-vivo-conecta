@@ -10,20 +10,32 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user && profile) {
-      // Redirect based on user role
-      switch (profile.role) {
-        case 'admin':
-          navigate('/admin/dashboard');
-          break;
-        case 'lider':
-          navigate('/lider/grupos');
-          break;
-        case 'membro':
-          navigate('/meu-perfil');
-          break;
-        default:
-          break;
+    console.log('Index useEffect:', { loading, user: !!user, profile });
+    
+    if (!loading && user) {
+      if (profile) {
+        // Redirect based on user role
+        console.log('Redirecting user with role:', profile.role);
+        switch (profile.role) {
+          case 'admin':
+          case 'pastor':
+            navigate('/admin/dashboard');
+            break;
+          case 'lider':
+            navigate('/lider/grupos');
+            break;
+          case 'membro':
+          case 'missionario':
+            navigate('/meu-perfil');
+            break;
+          default:
+            console.warn('Unknown role:', profile.role);
+            navigate('/meu-perfil');
+            break;
+        }
+      } else {
+        // User logged in but no profile found - stay on welcome screen
+        console.log('User logged in but no profile found');
       }
     }
   }, [user, profile, loading, navigate]);
@@ -257,6 +269,36 @@ const Index = () => {
               <Button onClick={signOut} variant="outline">
                 Sair
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (user && !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle>Perfil Incompleto</CardTitle>
+            <CardDescription>
+              Seu perfil não foi encontrado no sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center">
+              <p className="text-muted-foreground mb-4">
+                Entre em contato com o administrador da sua igreja para completar seu cadastro.
+              </p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Email: {user.email}
+                </p>
+                <Button onClick={signOut} variant="outline" className="w-full">
+                  Sair e Tentar Novamente
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
