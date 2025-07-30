@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import Navbar from '../../components/navigation/Navbar';
 const CadastrosPage = () => {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [leaders, setLeaders] = useState<any[]>([]);
 
   const [userForm, setUserForm] = useState({
     full_name: '',
@@ -39,13 +40,43 @@ const CadastrosPage = () => {
     leader_id: ''
   });
 
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    description: '',
+    event_date: '',
+    location: '',
+    is_recurring: false,
+    recurrence_pattern: ''
+  });
+
+  // Buscar líderes para o dropdown
+  useEffect(() => {
+    const fetchLeaders = async () => {
+      if (!profile?.church_id) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('church_id', profile.church_id)
+        .in('role', ['admin', 'pastor', 'missionario', 'lider']);
+      
+      setLeaders(data || []);
+    };
+    
+    fetchLeaders();
+  }, [profile?.church_id]);
+
   const handleUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      if (!profile?.church_id) {
+        throw new Error('Igreja não encontrada. Verifique sua configuração.');
+      }
+
       // First create auth user
-      const tempPassword = Math.random().toString(36).slice(-8);
+      const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userForm.email,
         password: tempPassword,
@@ -59,7 +90,10 @@ const CadastrosPage = () => {
 
       if (authError) throw authError;
 
-      // Then create profile with additional data
+      // Wait a moment for the trigger to create the initial profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Then update the profile with additional data
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -74,14 +108,14 @@ const CadastrosPage = () => {
             emergency_phone: userForm.emergency_phone,
             baptism_date: userForm.baptism_date || null,
             conversion_date: userForm.conversion_date || null,
-            church_id: profile?.church_id
+            church_id: profile.church_id
           })
           .eq('user_id', authData.user.id);
 
         if (profileError) throw profileError;
       }
 
-      toast.success('Usuário cadastrado com sucesso!');
+      toast.success(`Usuário cadastrado com sucesso! Senha temporária: ${tempPassword}`);
       setUserForm({
         full_name: '',
         email: '',
@@ -107,6 +141,14 @@ const CadastrosPage = () => {
     setLoading(true);
 
     try {
+      if (!profile?.church_id) {
+        throw new Error('Igreja não encontrada. Verifique sua configuração.');
+      }
+
+      if (!groupForm.leader_id) {
+        throw new Error('Por favor, selecione um líder para o grupo.');
+      }
+
       const { error } = await supabase
         .from('house_groups')
         .insert({
@@ -116,7 +158,7 @@ const CadastrosPage = () => {
           meeting_day: parseInt(groupForm.meeting_day),
           meeting_time: groupForm.meeting_time,
           leader_id: groupForm.leader_id,
-          church_id: profile?.church_id
+          church_id: profile.church_id
         });
 
       if (error) throw error;
@@ -132,6 +174,46 @@ const CadastrosPage = () => {
       });
     } catch (error: any) {
       toast.error('Erro ao cadastrar grupo: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEventSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!profile?.church_id) {
+        throw new Error('Igreja não encontrada. Verifique sua configuração.');
+      }
+
+      const { error } = await supabase
+        .from('events')
+        .insert({
+          title: eventForm.title,
+          description: eventForm.description,
+          event_date: eventForm.event_date,
+          location: eventForm.location,
+          is_recurring: eventForm.is_recurring,
+          recurrence_pattern: eventForm.recurrence_pattern,
+          church_id: profile.church_id,
+          created_by: profile.id
+        });
+
+      if (error) throw error;
+
+      toast.success('Evento cadastrado com sucesso!');
+      setEventForm({
+        title: '',
+        description: '',
+        event_date: '',
+        location: '',
+        is_recurring: false,
+        recurrence_pattern: ''
+      });
+    } catch (error: any) {
+      toast.error('Erro ao cadastrar evento: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -331,13 +413,19 @@ const CadastrosPage = () => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="leader_id">Líder Responsável</Label>
-                      <Input
-                        id="leader_id"
-                        placeholder="ID do líder"
-                        value={groupForm.leader_id}
-                        onChange={(e) => setGroupForm({ ...groupForm, leader_id: e.target.value })}
-                      />
+                      <Label htmlFor="leader_id">Líder Responsável *</Label>
+                      <Select value={groupForm.leader_id} onValueChange={(value) => setGroupForm({ ...groupForm, leader_id: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um líder" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {leaders.map((leader) => (
+                            <SelectItem key={leader.id} value={leader.id}>
+                              {leader.full_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                   <div>
@@ -376,13 +464,15 @@ const CadastrosPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form className="space-y-4">
+                <form onSubmit={handleEventSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="event_title">Título do Evento *</Label>
                       <Input
                         id="event_title"
                         placeholder="Ex: Culto de Domingo"
+                        value={eventForm.title}
+                        onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
                         required
                       />
                     </div>
@@ -391,6 +481,8 @@ const CadastrosPage = () => {
                       <Input
                         id="event_date"
                         type="datetime-local"
+                        value={eventForm.event_date}
+                        onChange={(e) => setEventForm({ ...eventForm, event_date: e.target.value })}
                         required
                       />
                     </div>
@@ -399,11 +491,22 @@ const CadastrosPage = () => {
                       <Input
                         id="event_location"
                         placeholder="Ex: Igreja Central"
+                        value={eventForm.location}
+                        onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
                       />
                     </div>
                     <div>
                       <Label htmlFor="event_recurring">Evento Recorrente</Label>
-                      <Select>
+                      <Select 
+                        value={eventForm.is_recurring ? eventForm.recurrence_pattern : 'none'} 
+                        onValueChange={(value) => {
+                          if (value === 'none') {
+                            setEventForm({ ...eventForm, is_recurring: false, recurrence_pattern: '' });
+                          } else {
+                            setEventForm({ ...eventForm, is_recurring: true, recurrence_pattern: value });
+                          }
+                        }}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
@@ -420,11 +523,13 @@ const CadastrosPage = () => {
                     <Textarea
                       id="event_description"
                       placeholder="Detalhes sobre o evento..."
+                      value={eventForm.description}
+                      onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
                       rows={3}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
-                    Cadastrar Evento
+                  <Button type="submit" disabled={loading} className="w-full">
+                    {loading ? 'Cadastrando...' : 'Cadastrar Evento'}
                   </Button>
                 </form>
               </CardContent>
