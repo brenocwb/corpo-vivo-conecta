@@ -72,7 +72,8 @@ const CadastrosPage = () => {
 
     try {
       if (!profile?.church_id) {
-        throw new Error('Igreja não encontrada. Verifique sua configuração.');
+        toast.error('Usuário não associado a uma igreja. Contate o suporte.');
+        return;
       }
 
       // First create auth user
