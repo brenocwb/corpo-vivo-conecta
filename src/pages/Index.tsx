@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Users, Home, BookOpen, Loader2 } from 'lucide-react';
+import LandingNavbar from '@/components/navigation/LandingNavbar';
 
 const Index = () => {
   const { user, profile, loading, signOut } = useAuth();
@@ -12,31 +13,32 @@ const Index = () => {
   useEffect(() => {
     console.log('Index useEffect:', { loading, user: !!user, profile });
     
-    if (!loading && user) {
-      if (profile) {
-        // Redirect based on user role
-        console.log('Redirecting user with role:', profile.role);
+    if (!loading && user && profile) {
+      // Only redirect if we have complete user data
+      console.log('Redirecting user with role:', profile.role);
+      
+      // Add a small delay to prevent flashing
+      const timer = setTimeout(() => {
         switch (profile.role) {
           case 'admin':
           case 'pastor':
-            navigate('/admin/dashboard');
+            navigate('/admin/dashboard', { replace: true });
             break;
           case 'lider':
-            navigate('/lider/grupos');
+            navigate('/lider/grupos', { replace: true });
             break;
           case 'membro':
           case 'missionario':
-            navigate('/meu-perfil');
+            navigate('/meu-perfil', { replace: true });
             break;
           default:
             console.warn('Unknown role:', profile.role);
-            navigate('/meu-perfil');
+            navigate('/meu-perfil', { replace: true });
             break;
         }
-      } else {
-        // User logged in but no profile found - stay on welcome screen
-        console.log('User logged in but no profile found');
-      }
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [user, profile, loading, navigate]);
 
@@ -54,8 +56,9 @@ const Index = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-subtle">
+        <LandingNavbar />
         {/* Hero Section */}
-        <section className="relative py-32 px-6 overflow-hidden">
+        <section className="relative py-32 px-6 overflow-hidden pt-40">
           <div className="absolute inset-0 bg-gradient-hero opacity-10"></div>
           <div className="relative max-w-6xl mx-auto text-center">
             <div className="flex items-center justify-center mb-8 animate-fade-in">
@@ -68,31 +71,48 @@ const Index = () => {
               </h1>
             </div>
             <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in">
-              Micro SaaS para igrejas que crescem de forma orgânica e relacional, 
-              com discipulado vivo e cuidado intencional de pessoas.
+              Plataforma completa para <span className="text-primary font-semibold">discipulado cristão</span> que conecta cada pessoa, 
+              fortalece relacionamentos e <span className="text-primary font-semibold">multiplica líderes</span> de forma natural.
             </p>
+            
+            {/* Feature highlights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto animate-fade-in">
+              <div className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border">
+                <Users className="h-8 w-8 text-primary mx-auto mb-2" />
+                <p className="text-sm font-medium">Gestão de Grupos</p>
+              </div>
+              <div className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border">
+                <BookOpen className="h-8 w-8 text-primary mx-auto mb-2" />
+                <p className="text-sm font-medium">Discipulado Personalizado</p>
+              </div>
+              <div className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border">
+                <Home className="h-8 w-8 text-primary mx-auto mb-2" />
+                <p className="text-sm font-medium">Igreja no Lar</p>
+              </div>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in">
               <Button 
                 size="lg" 
                 className="bg-gradient-primary hover:shadow-glow transition-all duration-300 text-lg px-8 py-6"
                 onClick={() => navigate('/auth')}
               >
-                Entrar na Plataforma
+                Comece Gratuitamente
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-primary text-primary hover:bg-primary-light transition-all duration-300 text-lg px-8 py-6"
+                className="border-primary text-primary hover:bg-primary/10 transition-all duration-300 text-lg px-8 py-6"
                 onClick={() => navigate('/auth')}
               >
-                Criar Conta Grátis
+                Fazer Login
               </Button>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section className="py-24 px-6">
+        <section id="recursos" className="py-24 px-6">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -148,8 +168,82 @@ const Index = () => {
           </div>
         </section>
 
+        {/* System Features Section */}
+        <section id="funcionalidades" className="py-24 px-6 bg-muted/30">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Recursos Completos do Sistema
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Tudo que você precisa para gerenciar sua igreja de forma eficiente
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-card/60 backdrop-blur-sm p-6 rounded-lg border hover:border-primary/50 transition-colors">
+                <Users className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-semibold mb-2">Gestão de Membros</h3>
+                <p className="text-sm text-muted-foreground">Cadastro completo, perfis detalhados e organização hierárquica</p>
+              </div>
+              
+              <div className="bg-card/60 backdrop-blur-sm p-6 rounded-lg border hover:border-primary/50 transition-colors">
+                <Home className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-semibold mb-2">Grupos Familiares</h3>
+                <p className="text-sm text-muted-foreground">Criação, agendamento e controle de presença</p>
+              </div>
+              
+              <div className="bg-card/60 backdrop-blur-sm p-6 rounded-lg border hover:border-primary/50 transition-colors">
+                <BookOpen className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-semibold mb-2">Estudos Bíblicos</h3>
+                <p className="text-sm text-muted-foreground">Biblioteca de estudos personalizáveis e categorizados</p>
+              </div>
+              
+              <div className="bg-card/60 backdrop-blur-sm p-6 rounded-lg border hover:border-primary/50 transition-colors">
+                <Heart className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-semibold mb-2">Discipulado</h3>
+                <p className="text-sm text-muted-foreground">Acompanhamento pessoal e encontros programados</p>
+              </div>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-card/60 backdrop-blur-sm p-6 rounded-lg border hover:border-primary/50 transition-colors">
+                <div className="h-8 w-8 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                  <div className="h-4 w-4 bg-primary rounded-full"></div>
+                </div>
+                <h3 className="font-semibold mb-2">Eventos & Reuniões</h3>
+                <p className="text-sm text-muted-foreground">Calendário inteligente e organização de eventos</p>
+              </div>
+              
+              <div className="bg-card/60 backdrop-blur-sm p-6 rounded-lg border hover:border-primary/50 transition-colors">
+                <div className="h-8 w-8 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                  <div className="h-4 w-4 bg-primary rounded-full"></div>
+                </div>
+                <h3 className="font-semibold mb-2">Relatórios</h3>
+                <p className="text-sm text-muted-foreground">Dashboards e métricas para tomada de decisão</p>
+              </div>
+              
+              <div className="bg-card/60 backdrop-blur-sm p-6 rounded-lg border hover:border-primary/50 transition-colors">
+                <div className="h-8 w-8 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                  <div className="h-4 w-4 bg-primary rounded-full"></div>
+                </div>
+                <h3 className="font-semibold mb-2">Alertas</h3>
+                <p className="text-sm text-muted-foreground">Notificações automáticas e lembretes importantes</p>
+              </div>
+              
+              <div className="bg-card/60 backdrop-blur-sm p-6 rounded-lg border hover:border-primary/50 transition-colors">
+                <div className="h-8 w-8 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                  <div className="h-4 w-4 bg-primary rounded-full"></div>
+                </div>
+                <h3 className="font-semibold mb-2">Integrações</h3>
+                <p className="text-sm text-muted-foreground">WhatsApp e Google Calendar para melhor comunicação</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Benefits Section */}
-        <section className="py-24 px-6 bg-accent/30">
+        <section id="beneficios" className="py-24 px-6 bg-accent/30">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <div>

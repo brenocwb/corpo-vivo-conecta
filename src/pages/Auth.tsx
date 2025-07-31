@@ -30,20 +30,38 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signIn(signInData.email, signInData.password);
+    try {
+      const { error } = await signIn(signInData.email, signInData.password);
 
-    if (error) {
+      if (error) {
+        let errorMessage = 'Erro desconhecido';
+        
+        if (error.message?.includes('Invalid login credentials')) {
+          errorMessage = 'Email ou senha incorretos';
+        } else if (error.message?.includes('Email not confirmed')) {
+          errorMessage = 'Confirme seu email antes de fazer login';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        toast({
+          title: 'Erro ao fazer login',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Login realizado com sucesso!',
+          description: 'Bem-vindo ao Corpo Vivo Conecta',
+        });
+        navigate('/');
+      }
+    } catch (err) {
       toast({
         title: 'Erro ao fazer login',
-        description: error.message,
+        description: 'Ocorreu um erro inesperado. Tente novamente.',
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: 'Login realizado com sucesso!',
-        description: 'Bem-vindo ao Corpo Vivo Conecta',
-      });
-      navigate('/');
     }
 
     setIsLoading(false);
@@ -53,18 +71,40 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signUp(signUpData.email, signUpData.password, signUpData.fullName);
+    try {
+      const { error } = await signUp(signUpData.email, signUpData.password, signUpData.fullName);
 
-    if (error) {
+      if (error) {
+        let errorMessage = 'Erro desconhecido';
+        
+        if (error.message?.includes('User already registered')) {
+          errorMessage = 'Este email já está cadastrado. Tente fazer login.';
+        } else if (error.message?.includes('Password')) {
+          errorMessage = 'A senha deve ter pelo menos 6 caracteres';
+        } else if (error.message?.includes('Invalid email')) {
+          errorMessage = 'Email inválido';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        toast({
+          title: 'Erro ao criar conta',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Conta criada com sucesso!',
+          description: 'Verifique seu e-mail para confirmar sua conta.',
+        });
+        // Clear form
+        setSignUpData({ email: '', password: '', fullName: '' });
+      }
+    } catch (err) {
       toast({
         title: 'Erro ao criar conta',
-        description: error.message,
+        description: 'Ocorreu um erro inesperado. Tente novamente.',
         variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Conta criada com sucesso!',
-        description: 'Verifique seu e-mail para confirmar sua conta.',
       });
     }
 
