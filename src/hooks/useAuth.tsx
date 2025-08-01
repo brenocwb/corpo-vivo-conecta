@@ -40,39 +40,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Fetch user profile
-          try {
-            console.log('Fetching profile for user_id:', session.user.id);
-            const { data: profileData, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            
-            console.log('Profile query result:', { profileData, error });
-            
-            if (error && error.code !== 'PGRST116') {
-              console.error('Error fetching profile:', error);
+          // Use setTimeout to prevent auth callback deadlock
+          setTimeout(async () => {
+            try {
+              console.log('Fetching profile for user_id:', session.user.id);
+              const { data: profileData, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .maybeSingle();
+              
+              console.log('Profile query result:', { profileData, error });
+              
+              if (error) {
+                console.error('Error fetching profile:', error);
+                setProfile(null);
+              } else if (profileData) {
+                console.log('Profile found:', profileData);
+                setProfile(profileData);
+              } else {
+                console.log('No profile found for user');
+                setProfile(null);
+              }
+              setLoading(false);
+            } catch (err) {
+              console.error('Exception fetching profile:', err);
               setProfile(null);
-            } else if (profileData) {
-              console.log('Profile found:', profileData);
-              setProfile(profileData);
-            } else {
-              console.log('No profile found for user');
-              setProfile(null);
+              setLoading(false);
             }
-            setLoading(false);
-          } catch (err) {
-            console.error('Exception fetching profile:', err);
-            setProfile(null);
-            setLoading(false);
-          }
+          }, 0);
         } else {
           setProfile(null);
           setLoading(false);
