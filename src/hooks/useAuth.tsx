@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               .from('profiles')
               .select('*')
               .eq('user_id', session.user.id)
-              .single();
+              .maybeSingle();
             
             console.log('Profile query result:', { profileData, error });
             
