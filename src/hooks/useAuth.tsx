@@ -48,19 +48,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (session?.user) {
           // Fetch user profile
           try {
+            console.log('Fetching profile for user_id:', session.user.id);
             const { data: profileData, error } = await supabase
               .from('profiles')
               .select('*')
               .eq('user_id', session.user.id)
               .single();
             
-            console.log('Profile data:', profileData, 'Error:', error);
+            console.log('Profile query result:', { profileData, error });
             
-            if (error) {
+            if (error && error.code !== 'PGRST116') {
               console.error('Error fetching profile:', error);
+              setProfile(null);
+            } else if (profileData) {
+              console.log('Profile found:', profileData);
+              setProfile(profileData);
+            } else {
+              console.log('No profile found for user');
+              setProfile(null);
             }
-            
-            setProfile(profileData || null);
             setLoading(false);
           } catch (err) {
             console.error('Exception fetching profile:', err);
