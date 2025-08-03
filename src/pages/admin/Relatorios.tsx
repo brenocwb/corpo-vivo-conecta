@@ -81,10 +81,12 @@ const RelatoriosPage = () => {
       const { data: meetingsData, error: meetingsError } = await supabase
         .from('encontros')
         .select(`
+          id,
           meeting_date,
           topic,
           discipulado:discipulados(id, disciple:profiles(full_name))
-        `);
+        `)
+        .order('meeting_date', { ascending: false });
       
       if (meetingsError) throw meetingsError;
       setAllMeetings(meetingsData || []);
