@@ -80,7 +80,11 @@ const RelatoriosPage = () => {
       // Fetch all meetings for the frequency report
       const { data: meetingsData, error: meetingsError } = await supabase
         .from('encontros')
-        .select('meeting_date');
+        .select(`
+          meeting_date,
+          topic,
+          discipulado:discipulados(id, disciple:profiles(full_name))
+        `);
       
       if (meetingsError) throw meetingsError;
       setAllMeetings(meetingsData || []);
@@ -430,7 +434,7 @@ const RelatoriosPage = () => {
                     <TableBody>
                       {allMeetings.map((meeting) => (
                         <TableRow key={meeting.id}>
-                          <TableCell>{meeting.disciple_name}</TableCell>
+                          <TableCell>{meeting.discipulado?.disciple?.full_name}</TableCell>
                           <TableCell>{new Date(meeting.meeting_date).toLocaleDateString('pt-BR')}</TableCell>
                           <TableCell>{meeting.topic}</TableCell>
                         </TableRow>
