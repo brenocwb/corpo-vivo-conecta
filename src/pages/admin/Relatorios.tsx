@@ -366,10 +366,9 @@ const RelatoriosPage = () => {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
           <TabsContent value="membros">
             <Card>
