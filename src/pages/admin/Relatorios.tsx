@@ -25,12 +25,40 @@ const RelatoriosPage = () => {
   const [loading, setLoading] = useState(true);
   const [meetingData, setMeetingData] = useState<any[]>([]);
   const [allMeetings, setAllMeetings] = useState<any[]>([]);
+  const [pieData, setPieData] = useState<any[]>([]);
+  const [barData, setBarData] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (profile?.church_id) {
-        fetchData();
-    }
-  }, [profile?.church_id]);
+  const roleColors = {
+    pastor: '#8B5CF6',
+    missionario: '#3B82F6',
+    lider: '#10B981',
+    admin: '#F59E0B',
+    membro: '#6B7280'
+  };
+  
+  const weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+  const getRoleLabel = (role: string) => {
+    const labels = {
+      pastor: 'Pastor',
+      missionario: 'Missionário',
+      lider: 'Líder',
+      admin: 'Administrador',
+      membro: 'Discípulo'
+    };
+    return labels[role as keyof typeof labels] || role;
+  };
+
+  const getRoleVariant = (role: string) => {
+    const variants = {
+      pastor: 'default',
+      missionario: 'secondary',
+      lider: 'outline',
+      admin: 'destructive',
+      membro: 'secondary'
+    };
+    return variants[role as keyof typeof variants] || 'outline';
+  };
   
   const fetchStats = async (churchId: string) => {
     const [
@@ -66,18 +94,17 @@ const RelatoriosPage = () => {
     if (error) throw error;
     setGroups(groupsData || []);
 
-    const weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
     const groupsByDay = (groupsData || []).reduce((acc, group) => {
       const day = weekDays[group.meeting_day];
       acc[day] = (acc[day] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const barData = weekDays.map(day => ({
+    const newBarData = weekDays.map(day => ({
       day,
       groups: groupsByDay[day] || 0
     }));
-    setBarData(barData);
+    setBarData(newBarData);
   };
   
   const fetchMembers = async (churchId: string) => {
@@ -96,12 +123,12 @@ const RelatoriosPage = () => {
       return acc;
     }, {} as Record<string, number>);
 
-    const pieData = Object.entries(roleData).map(([role, count]) => ({
+    const newPieData = Object.entries(roleData).map(([role, count]) => ({
       name: getRoleLabel(role),
       value: count,
       color: roleColors[role as keyof typeof roleColors]
     }));
-    setPieData(pieData);
+    setPieData(newPieData);
   };
   
   const fetchMeetings = async () => {
@@ -155,40 +182,6 @@ const RelatoriosPage = () => {
     }
   };
 
-  const roleColors = {
-    pastor: '#8B5CF6',
-    missionario: '#3B82F6',
-    lider: '#10B981',
-    admin: '#F59E0B',
-    membro: '#6B7280'
-  };
-
-  const [pieData, setPieData] = useState<any[]>([]);
-  const [barData, setBarData] = useState<any[]>([]);
-
-  const weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-  
-  const getRoleLabel = (role: string) => {
-    const labels = {
-      pastor: 'Pastor',
-      missionario: 'Missionário',
-      lider: 'Líder',
-      admin: 'Administrador',
-      membro: 'Discípulo'
-    };
-    return labels[role as keyof typeof labels] || role;
-  };
-
-  const getRoleVariant = (role: string) => {
-    const variants = {
-      pastor: 'default',
-      missionario: 'secondary',
-      lider: 'outline',
-      admin: 'destructive',
-      membro: 'secondary'
-    };
-    return variants[role as keyof typeof variants] || 'outline';
-  };
 
   if (loading) {
     return (
@@ -414,8 +407,8 @@ const RelatoriosPage = () => {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
-              </CardContent>
+                </CardContent>
+              </Card>
             </Card>
           </TabsContent>
 
