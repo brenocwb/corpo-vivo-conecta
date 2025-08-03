@@ -10,6 +10,7 @@ import { Users, TrendingUp, Calendar, MapPin, Download } from 'lucide-react';
 import Navbar from '@/components/navigation/Navbar';
 
 const RelatoriosPage = () => {
+  const { profile } = useAuth();
   const [stats, setStats] = useState({
     totalMembers: 0,
     totalGroups: 0,
@@ -23,9 +24,14 @@ const RelatoriosPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [profile?.church_id]);
 
   const fetchData = async () => {
+    if (!profile?.church_id) {
+        setLoading(false);
+        return;
+    }
+    
     try {
       // Fetch stats
       const [
@@ -34,10 +40,10 @@ const RelatoriosPage = () => {
         { count: totalMeetings },
         { count: activeDiscipulados }
       ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('house_groups').select('*', { count: 'exact', head: true }),
-        supabase.from('group_meetings').select('*', { count: 'exact', head: true }),
-        supabase.from('discipulados').select('*', { count: 'exact', head: true }).eq('active', true)
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('church_id', profile.church_id),
+        supabase.from('house_groups').select('id', { count: 'exact', head: true }).eq('church_id', profile.church_id),
+        supabase.from('encontros').select('id', { count: 'exact', head: true }),
+        supabase.from('discipulados').select('id', { count: 'exact', head: true }).eq('active', true)
       ]);
 
       setStats({
@@ -53,7 +59,9 @@ const RelatoriosPage = () => {
         .select(`
           *,
           leader:profiles!house_groups_leader_id_fkey(full_name)
-        `);
+        `)
+        .eq('church_id', profile.church_id)
+        .order('created_at', { ascending: false });
 
       setGroups(groupsData || []);
 
@@ -61,6 +69,7 @@ const RelatoriosPage = () => {
       const { data: membersData } = await supabase
         .from('profiles')
         .select('*')
+        .eq('church_id', profile.church_id)
         .order('created_at', { ascending: false });
 
       setMembers(membersData || []);
@@ -92,7 +101,7 @@ const RelatoriosPage = () => {
   }));
 
   const weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-  const groupsByDay = groups.reduce((acc, group) => {
+  const groupsByDay = (groups || []).reduce((acc, group) => {
     const day = weekDays[group.meeting_day];
     acc[day] = (acc[day] || 0) + 1;
     return acc;
