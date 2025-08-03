@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Calendar, Target, Plus, CheckCircle, BookOpen } from 'lucide-react';
 import Navbar from '@/components/navigation/Navbar';
+import { Link } from 'react-router-dom';
 
 interface Discipulado {
   id: string;
@@ -27,6 +28,7 @@ interface DiscipleshipPlan {
   id: string;
   title: string;
   description: string;
+  steps_count: number;
 }
 
 interface PlanProgress {
@@ -35,6 +37,7 @@ interface PlanProgress {
   plan_id: string;
   current_step: number;
   plan: DiscipleshipPlan;
+  status: 'nao_iniciado' | 'em_progresso' | 'concluido' | 'arquivado' | 'removido';
 }
 
 const LiderDiscipulados = () => {
@@ -43,6 +46,7 @@ const LiderDiscipulados = () => {
   const [discipulados, setDiscipulados] = useState<Discipulado[]>([]);
   const [discipleshipPlans, setDiscipleshipPlans] = useState<DiscipleshipPlan[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [disciplesWithProgress, setDisciplesWithProgress] = useState<any[]>([]);
 
   const [assignPlanForm, setAssignPlanForm] = useState({
     disciple_id: '',
@@ -77,11 +81,38 @@ const LiderDiscipulados = () => {
       // Fetch all available discipleship plans
       const { data: plansData, error: plansError } = await supabase
         .from('plans')
-        .select('id, title, description')
+        .select('id, title, description, steps_count')
         .eq('church_id', profile?.church_id);
 
       if (plansError) throw plansError;
       setDiscipleshipPlans(plansData as DiscipleshipPlan[]);
+      
+      // Fetch progress for each disciple
+      if (discipuladosData) {
+        const disciplesProgress = await Promise.all(
+          discipuladosData.map(async (discipulado) => {
+            const { data: progress, error: progressError } = await supabase
+              .from('plan_progress')
+              .select(`
+                *,
+                plan:plans(id, title, description, steps_count)
+              `)
+              .eq('user_id', discipulado.disciple_id)
+              .eq('status', 'em_progresso'); // Apenas planos em progresso
+              
+            if (progressError) {
+              console.error(`Erro ao buscar progresso para o discípulo ${discipulado.disciple.full_name}:`, progressError);
+            }
+
+            return {
+              ...discipulado,
+              plans_progress: progress || [],
+            };
+          })
+        );
+        setDisciplesWithProgress(disciplesProgress);
+      }
+
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -92,6 +123,13 @@ const LiderDiscipulados = () => {
   const handleAssignPlan = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Verificação para garantir que o formulário não está vazio
+      if (!assignPlanForm.disciple_id || !assignPlanForm.plan_id) {
+          console.error("Discípulo e Plano são obrigatórios.");
+          // TODO: Adicionar um toast de erro para feedback ao usuário
+          return;
+      }
+      
       const { error } = await supabase.from('plan_progress').insert([
         {
           user_id: assignPlanForm.disciple_id,
@@ -101,19 +139,22 @@ const LiderDiscipulados = () => {
           current_step: 0,
         },
       ]);
+      
       if (error) throw error;
       console.log('Plano atribuído com sucesso!');
       setIsDialogOpen(false);
       setAssignPlanForm({ disciple_id: '', plan_id: '' });
-      // Adicione um toast de sucesso aqui
+      fetchData(); // Recarregar os dados para atualizar a lista
+      // TODO: Adicionar um toast de sucesso aqui
     } catch (error) {
       console.error('Erro ao atribuir plano:', error);
-      // Adicione um toast de erro aqui
+      // TODO: Adicionar um toast de erro aqui
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <Navbar />
       <div className="container mx-auto p-6">
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -184,7 +225,6 @@ const LiderDiscipulados = () => {
           </Dialog>
         </div>
 
-        {/* Adicionar a seção de progresso dos discípulos aqui */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Progresso dos Discípulos</CardTitle>
@@ -197,123 +237,42 @@ const LiderDiscipulados = () => {
               <div className="text-center py-8 text-muted-foreground">
                 Carregando progresso...
               </div>
-            ) : discipulados.length === 0 ? (
+            ) : disciplesWithProgress.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 Nenhum discípulo ativo para acompanhar.
               </div>
             ) : (
-              // Esta parte precisaria de mais código para buscar e exibir os planos
-              // de progresso de cada discípulo. Por enquanto, é um placeholder.
-              <div className="text-center py-8 text-muted-foreground">
-                Funcionalidade de visualização de progresso em desenvolvimento.
+              <div className="space-y-4">
+                {disciplesWithProgress.map((disciple) => (
+                  <div key={disciple.id} className="border rounded-lg p-4">
+                    <h3 className="font-semibold text-lg mb-2">{disciple.disciple.full_name}</h3>
+                    {disciple.plans_progress.length > 0 ? (
+                      <div className="space-y-3">
+                        {disciple.plans_progress.map((progress: PlanProgress) => (
+                          <div key={progress.id}>
+                            <p className="text-sm font-medium">{progress.plan.title}</p>
+                            <Progress value={(progress.current_step / progress.plan.steps_count) * 100} className="mt-1" />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Etapa {progress.current_step} de {progress.plan.steps_count}
+                            </p>
+                            <Link to={`/plano/${progress.plan_id}`}>
+                                <Button size="sm" variant="outline" className="mt-2">Ver Progresso</Button>
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhum plano em progresso.</p>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
 
+        {/* Removendo a seção de Discípulos Ativos e Próximos Encontros para focar no novo módulo */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Discípulos Ativos</CardTitle>
-              <CardDescription>
-                Lista dos seus discípulos em acompanhamento
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Users className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Maria Silva</p>
-                      <p className="text-sm text-muted-foreground">
-                        Discipulado iniciado em Jan/2024
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
-                      Ver Progresso
-                    </Button>
-                    <Button size="sm">
-                      Novo Encontro
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Users className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">João Santos</p>
-                      <p className="text-sm text-muted-foreground">
-                        Discipulado iniciado em Fev/2024
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
-                      Ver Progresso
-                    </Button>
-                    <Button size="sm">
-                      Novo Encontro
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Próximos Encontros</CardTitle>
-              <CardDescription>
-                Reuniões de discipulado agendadas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-accent" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Maria Silva</p>
-                      <p className="text-sm text-muted-foreground">
-                        Hoje às 19:00 - Oração e Jejum
-                      </p>
-                    </div>
-                  </div>
-                  <Button size="sm" variant="outline">
-                    Detalhes
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-accent" />
-                    </div>
-                    <div>
-                      <p className="font-medium">João Santos</p>
-                      <p className="text-sm text-muted-foreground">
-                        Amanhã às 18:30 - Estudo Bíblico
-                      </p>
-                    </div>
-                  </div>
-                  <Button size="sm" variant="outline">
-                    Detalhes
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Registrar Novo Encontro</CardTitle>
