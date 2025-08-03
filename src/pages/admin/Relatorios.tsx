@@ -409,8 +409,7 @@ const RelatoriosPage = () => {
                   </TableBody>
                 </CardContent>
               </Card>
-            </Card>
-          </TabsContent>
+            </TabsContent>
 
           <TabsContent value="frequencia">
             <Card>
