@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Users, TrendingUp, Calendar, MapPin, Download } from 'lucide-react';
 import Navbar from '@/components/navigation/Navbar';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const RelatoriosPage = () => {
   const { profile } = useAuth();
@@ -26,90 +27,131 @@ const RelatoriosPage = () => {
   const [allMeetings, setAllMeetings] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchData();
+    if (profile?.church_id) {
+        fetchData();
+    }
   }, [profile?.church_id]);
+  
+  const fetchStats = async (churchId: string) => {
+    const [
+      { count: totalMembers },
+      { count: totalGroups },
+      { count: totalMeetings },
+      { count: activeDiscipulados }
+    ] = await Promise.all([
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('church_id', churchId),
+      supabase.from('house_groups').select('id', { count: 'exact', head: true }).eq('church_id', churchId),
+      supabase.from('encontros').select('id', { count: 'exact', head: true }),
+      supabase.from('discipulados').select('id', { count: 'exact', head: true }).eq('active', true)
+    ]);
+    
+    setStats({
+      totalMembers: totalMembers || 0,
+      totalGroups: totalGroups || 0,
+      totalMeetings: totalMeetings || 0,
+      activeDiscipulados: activeDiscipulados || 0
+    });
+  };
+  
+  const fetchGroups = async (churchId: string) => {
+    const { data: groupsData, error } = await supabase
+      .from('house_groups')
+      .select(`
+        *,
+        leader:profiles!house_groups_leader_id_fkey(full_name)
+      `)
+      .eq('church_id', churchId)
+      .order('created_at', { ascending: false });
 
+    if (error) throw error;
+    setGroups(groupsData || []);
+
+    const weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    const groupsByDay = (groupsData || []).reduce((acc, group) => {
+      const day = weekDays[group.meeting_day];
+      acc[day] = (acc[day] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const barData = weekDays.map(day => ({
+      day,
+      groups: groupsByDay[day] || 0
+    }));
+    setBarData(barData);
+  };
+  
+  const fetchMembers = async (churchId: string) => {
+    const { data: membersData, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('church_id', churchId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    setMembers(membersData || []);
+
+    const roleData = (membersData || []).reduce((acc, member) => {
+      const role = member.role;
+      acc[role] = (acc[role] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const pieData = Object.entries(roleData).map(([role, count]) => ({
+      name: getRoleLabel(role),
+      value: count,
+      color: roleColors[role as keyof typeof roleColors]
+    }));
+    setPieData(pieData);
+  };
+  
+  const fetchMeetings = async () => {
+    const { data: meetingsData, error: meetingsError } = await supabase
+      .from('encontros')
+      .select(`
+        id,
+        meeting_date,
+        topic,
+        discipulado:discipulados(id, disciple:profiles(full_name))
+      `)
+      .order('meeting_date', { ascending: false });
+    
+    if (meetingsError) throw meetingsError;
+    setAllMeetings(meetingsData || []);
+
+    const monthlyMeetings = (meetingsData || []).reduce((acc, meeting) => {
+      const date = new Date(meeting.meeting_date);
+      const month = date.toLocaleString('pt-BR', { month: 'short' });
+      acc[month] = (acc[month] || 0) + 1;
+      return acc;
+    }, {});
+
+    const monthOrder = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const formattedMeetingData = monthOrder.map(month => ({
+      name: month,
+      meetings: monthlyMeetings[month] || 0
+    }));
+    setMeetingData(formattedMeetingData);
+  };
+  
   const fetchData = async () => {
     if (!profile?.church_id) {
         setLoading(false);
         return;
     }
     
+    setLoading(true);
     try {
-      // Fetch stats
-      const [
-        { count: totalMembers },
-        { count: totalGroups },
-        { count: totalMeetings },
-        { count: activeDiscipulados }
-      ] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('church_id', profile.church_id),
-        supabase.from('house_groups').select('id', { count: 'exact', head: true }).eq('church_id', profile.church_id),
-        supabase.from('encontros').select('id', { count: 'exact', head: true }),
-        supabase.from('discipulados').select('id', { count: 'exact', head: true }).eq('active', true)
+      await Promise.all([
+        fetchStats(profile.church_id),
+        fetchGroups(profile.church_id),
+        fetchMembers(profile.church_id),
+        fetchMeetings(),
       ]);
-
-      setStats({
-        totalMembers: totalMembers || 0,
-        totalGroups: totalGroups || 0,
-        totalMeetings: totalMeetings || 0,
-        activeDiscipulados: activeDiscipulados || 0
-      });
-
-      // Fetch groups with leader info
-      const { data: groupsData } = await supabase
-        .from('house_groups')
-        .select(`
-          *,
-          leader:profiles!house_groups_leader_id_fkey(full_name)
-        `)
-        .eq('church_id', profile.church_id)
-        .order('created_at', { ascending: false });
-
-      setGroups(groupsData || []);
-
-      // Fetch members
-      const { data: membersData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('church_id', profile.church_id)
-        .order('created_at', { ascending: false });
-
-      setMembers(membersData || []);
-
-      // Fetch all meetings for the frequency report
-      const { data: meetingsData, error: meetingsError } = await supabase
-        .from('encontros')
-        .select(`
-          id,
-          meeting_date,
-          topic,
-          discipulado:discipulados(id, disciple:profiles(full_name))
-        `)
-        .order('meeting_date', { ascending: false });
-      
-      if (meetingsError) throw meetingsError;
-      setAllMeetings(meetingsData || []);
-
-      // Process meeting data for the chart
-      const monthlyMeetings = (meetingsData || []).reduce((acc, meeting) => {
-        const date = new Date(meeting.meeting_date);
-        const month = date.toLocaleString('pt-BR', { month: 'short' });
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {});
-
-      const monthOrder = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-      const formattedMeetingData = monthOrder.map(month => ({
-        name: month,
-        meetings: monthlyMeetings[month] || 0
-      }));
-      setMeetingData(formattedMeetingData);
-
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+        console.error('Erro ao carregar dados:', error);
+        toast.error('Erro ao carregar dados dos relatórios.');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -121,30 +163,11 @@ const RelatoriosPage = () => {
     membro: '#6B7280'
   };
 
-  const roleData = members.reduce((acc, member) => {
-    const role = member.role;
-    acc[role] = (acc[role] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const pieData = Object.entries(roleData).map(([role, count]) => ({
-    name: role.charAt(0).toUpperCase() + role.slice(1),
-    value: count,
-    color: roleColors[role as keyof typeof roleColors]
-  }));
+  const [pieData, setPieData] = useState<any[]>([]);
+  const [barData, setBarData] = useState<any[]>([]);
 
   const weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-  const groupsByDay = (groups || []).reduce((acc, group) => {
-    const day = weekDays[group.meeting_day];
-    acc[day] = (acc[day] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const barData = weekDays.map(day => ({
-    day,
-    groups: groupsByDay[day] || 0
-  }));
-
+  
   const getRoleLabel = (role: string) => {
     const labels = {
       pastor: 'Pastor',
