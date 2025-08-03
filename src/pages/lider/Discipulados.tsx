@@ -255,7 +255,7 @@ const LiderDiscipulados = () => {
                             <p className="text-xs text-muted-foreground mt-1">
                               Etapa {progress.current_step} de {progress.plan.steps_count}
                             </p>
-                            <Link to={`/plano/${progress.plan_id}`}>
+                            <Link to={`/plano/${progress.plan.id}`}>
                                 <Button size="sm" variant="outline" className="mt-2">Ver Progresso</Button>
                             </Link>
                           </div>
