@@ -67,8 +67,8 @@ const RelatoriosPage = () => {
           return;
       }
       
+      setLoading(true);
       try {
-        setLoading(true);
         // Fetch stats
         const [
           { count: totalMembers },
