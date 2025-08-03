@@ -22,6 +22,8 @@ const RelatoriosPage = () => {
   const [groups, setGroups] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [meetingData, setMeetingData] = useState<any[]>([]);
+  const [allMeetings, setAllMeetings] = useState<any[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -74,6 +76,30 @@ const RelatoriosPage = () => {
         .order('created_at', { ascending: false });
 
       setMembers(membersData || []);
+
+      // Fetch all meetings for the frequency report
+      const { data: meetingsData, error: meetingsError } = await supabase
+        .from('encontros')
+        .select('meeting_date');
+      
+      if (meetingsError) throw meetingsError;
+      setAllMeetings(meetingsData || []);
+
+      // Process meeting data for the chart
+      const monthlyMeetings = (meetingsData || []).reduce((acc, meeting) => {
+        const date = new Date(meeting.meeting_date);
+        const month = date.toLocaleString('pt-BR', { month: 'short' });
+        acc[month] = (acc[month] || 0) + 1;
+        return acc;
+      }, {});
+
+      const monthOrder = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      const formattedMeetingData = monthOrder.map(month => ({
+        name: month,
+        meetings: monthlyMeetings[month] || 0
+      }));
+      setMeetingData(formattedMeetingData);
+
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -367,21 +393,52 @@ const RelatoriosPage = () => {
           <TabsContent value="frequencia">
             <Card>
               <CardHeader>
-                <CardTitle>Relatório de Frequência</CardTitle>
+                <CardTitle>Reuniões por Mês</CardTitle>
                 <CardDescription>
-                  Análise de presença nas reuniões dos grupos
+                  Número de encontros registrados por mês
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Em desenvolvimento</h3>
-                  <p className="text-muted-foreground">
-                    Relatórios de frequência serão implementados em breve
-                  </p>
-                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={meetingData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="meetings" fill="hsl(var(--primary))" />
+                  </BarChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
+
+            <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Histórico de Reuniões</CardTitle>
+                  <CardDescription>
+                    Lista de todos os encontros registrados
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Discípulo</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Tópico</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allMeetings.map((meeting) => (
+                        <TableRow key={meeting.id}>
+                          <TableCell>{meeting.disciple_name}</TableCell>
+                          <TableCell>{new Date(meeting.meeting_date).toLocaleDateString('pt-BR')}</TableCell>
+                          <TableCell>{meeting.topic}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
           </TabsContent>
         </Tabs>
       </div>
