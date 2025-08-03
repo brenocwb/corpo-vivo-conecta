@@ -359,10 +359,9 @@ const RelatoriosPage = () => {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
           <TabsContent value="membros">
             <Card>
@@ -407,52 +406,21 @@ const RelatoriosPage = () => {
           <TabsContent value="frequencia">
             <Card>
               <CardHeader>
-                <CardTitle>Reuniões por Mês</CardTitle>
+                <CardTitle>Relatório de Frequência</CardTitle>
                 <CardDescription>
-                  Número de encontros registrados por mês
+                  Análise de presença nas reuniões dos grupos
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={meetingData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="meetings" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="text-center py-8">
+                  <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Em desenvolvimento</h3>
+                  <p className="text-muted-foreground">
+                    Relatórios de frequência serão implementados em breve
+                  </p>
+                </div>
               </CardContent>
             </Card>
-
-            <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>Histórico de Reuniões</CardTitle>
-                  <CardDescription>
-                    Lista de todos os encontros registrados
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Discípulo</TableHead>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Tópico</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {allMeetings.map((meeting) => (
-                        <TableRow key={meeting.id}>
-                          <TableCell>{meeting.discipulado?.disciple?.full_name}</TableCell>
-                          <TableCell>{new Date(meeting.meeting_date).toLocaleDateString('pt-BR')}</TableCell>
-                          <TableCell>{meeting.topic}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
           </TabsContent>
         </Tabs>
       </div>
