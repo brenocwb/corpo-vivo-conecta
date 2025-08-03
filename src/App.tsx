@@ -16,7 +16,7 @@ import LiderGrupos from "./pages/lider/Grupos";
 import LiderDiscipulados from "./pages/lider/Discipulados";
 import LiderReunioes from "./pages/lider/Reunioes";
 import MembroPerfil from "./pages/membro/Perfil";
-import MembroPlanoDetalhe from "./pages/membro/PlanoDetalhe"; // <-- Novo import
+import MembroPlanoDetalhe from "./pages/membro/PlanoDetalhe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,12 +36,12 @@ const App = () => (
             <Route path="/admin/relatorios" element={<AdminRelatorios />} />
             <Route path="/admin/grupos" element={<AdminGrupos />} />
             <Route path="/admin/estudos" element={<AdminEstudos />} />
-            <Route path="/admin/planos" element={<AdminPlanos />} />
+            <Route path="/admin/planos" element={<AdminPlanos />} /> {/* <-- Nova rota */}
             <Route path="/lider/grupos" element={<LiderGrupos />} />
             <Route path="/lider/discipulados" element={<LiderDiscipulados />} />
             <Route path="/lider/reunioes" element={<LiderReunioes />} />
             <Route path="/meu-perfil" element={<MembroPerfil />} />
-            <Route path="/plano/:planId" element={<MembroPlanoDetalhe />} /> {/* <-- Nova rota dinâmica */}
+            <Route path="/plano/:planId" element={<MembroPlanoDetalhe />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
