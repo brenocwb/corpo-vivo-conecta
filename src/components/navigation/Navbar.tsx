@@ -1,3 +1,4 @@
+// File: src/components/navigation/Navbar.tsx
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,9 +38,13 @@ const Navbar = () => {
   const getNavItems = () => {
     switch (profile.role) {
       case 'admin':
+      case 'pastor':
         return [
           { href: '/admin/dashboard', label: 'Dashboard', icon: BarChart3 },
           { href: '/admin/cadastros', label: 'Cadastros', icon: UserPlus },
+          { href: '/admin/grupos', label: 'Grupos', icon: Home },
+          { href: '/admin/estudos', label: 'Estudos', icon: BookOpen },
+          { href: '/admin/planos', label: 'Planos', icon: BookOpen },
           { href: '/admin/relatorios', label: 'Relatórios', icon: BarChart3 },
         ];
       case 'lider':
@@ -107,7 +112,6 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             <NavContent />
             
@@ -152,7 +156,6 @@ const Navbar = () => {
             </DropdownMenu>
           </div>
 
-          {/* Mobile Navigation */}
           <div className="md:hidden flex items-center">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
