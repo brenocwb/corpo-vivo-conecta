@@ -1,4 +1,3 @@
-// File: src/components/navigation/Navbar.tsx
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,7 +43,7 @@ const Navbar = () => {
           { href: '/admin/cadastros', label: 'Cadastros', icon: UserPlus },
           { href: '/admin/grupos', label: 'Grupos', icon: Home },
           { href: '/admin/estudos', label: 'Estudos', icon: BookOpen },
-          { href: '/admin/planos', label: 'Planos', icon: BookOpen },
+          { href: '/admin/planos', label: 'Planos', icon: BookOpen }, // <-- Novo item
           { href: '/admin/relatorios', label: 'Relatórios', icon: BarChart3 },
         ];
       case 'lider':
