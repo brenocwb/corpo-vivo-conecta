@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_settings: {
+        Row: {
+          alert_type: string
+          church_id: string
+          created_at: string
+          criteria: Json
+          enabled: boolean
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          alert_type: string
+          church_id: string
+          created_at?: string
+          criteria?: Json
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          alert_type?: string
+          church_id?: string
+          created_at?: string
+          criteria?: Json
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       alerts: {
         Row: {
           created_at: string
@@ -634,9 +664,13 @@ export type Database = {
           emergency_contact: string | null
           emergency_phone: string | null
           full_name: string
+          growth_milestones: string | null
           id: string
           phone: string | null
+          prayer_requests: string | null
+          private_notes: string | null
           role: Database["public"]["Enums"]["user_role"]
+          spiritual_challenges: string | null
           supervisor_id: string | null
           updated_at: string
           user_id: string
@@ -652,9 +686,13 @@ export type Database = {
           emergency_contact?: string | null
           emergency_phone?: string | null
           full_name: string
+          growth_milestones?: string | null
           id?: string
           phone?: string | null
+          prayer_requests?: string | null
+          private_notes?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          spiritual_challenges?: string | null
           supervisor_id?: string | null
           updated_at?: string
           user_id: string
@@ -670,9 +708,13 @@ export type Database = {
           emergency_contact?: string | null
           emergency_phone?: string | null
           full_name?: string
+          growth_milestones?: string | null
           id?: string
           phone?: string | null
+          prayer_requests?: string | null
+          private_notes?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          spiritual_challenges?: string | null
           supervisor_id?: string | null
           updated_at?: string
           user_id?: string
@@ -729,6 +771,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_and_generate_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user_church: {
         Args: Record<PropertyKey, never>
         Returns: string
