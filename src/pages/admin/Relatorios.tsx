@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, TrendingUp, Calendar, MapPin, Download } from 'lucide-react';
 import Navbar from '@/components/navigation/Navbar';
+import { useAuth } from '@/hooks/useAuth';
 
 const RelatoriosPage = () => {
   const { profile } = useAuth();
