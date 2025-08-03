@@ -4,9 +4,69 @@ import { useAuth } from '@/hooks/useAuth';
 import { Users, Home, BookOpen, Activity, UserPlus, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/navigation/Navbar';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
 
 const AdminDashboard = () => {
   const { profile } = useAuth();
+  const [stats, setStats] = useState({
+    totalMembers: 0,
+    totalGroups: 0,
+    totalDiscipleships: 0,
+    weekActivities: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!profile?.church_id) return;
+      
+      try {
+        // Buscar total de membros
+        const { data: members } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('church_id', profile.church_id);
+
+        // Buscar total de grupos ativos
+        const { data: groups } = await supabase
+          .from('house_groups')
+          .select('id')
+          .eq('church_id', profile.church_id)
+          .eq('active', true);
+
+        // Buscar discipulados ativos
+        const { data: discipleships } = await supabase
+          .from('discipulados')
+          .select('id')
+          .eq('active', true);
+
+        // Buscar atividades desta semana
+        const today = new Date();
+        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+        
+        const { data: activities } = await supabase
+          .from('group_meetings')
+          .select('id')
+          .gte('meeting_date', startOfWeek.toISOString().split('T')[0])
+          .lte('meeting_date', endOfWeek.toISOString().split('T')[0]);
+
+        setStats({
+          totalMembers: members?.length || 0,
+          totalGroups: groups?.length || 0,
+          totalDiscipleships: discipleships?.length || 0,
+          weekActivities: activities?.length || 0
+        });
+      } catch (error) {
+        console.error('Erro ao buscar estatísticas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [profile?.church_id]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,9 +90,11 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loading ? '...' : stats.totalMembers}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +0% em relação ao mês passado
+                Membros cadastrados na igreja
               </p>
             </CardContent>
           </Card>
@@ -45,7 +107,9 @@ const AdminDashboard = () => {
               <Home className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loading ? '...' : stats.totalGroups}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Grupos ativos na igreja
               </p>
@@ -60,7 +124,9 @@ const AdminDashboard = () => {
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loading ? '...' : stats.totalDiscipleships}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Relações de discipulado
               </p>
@@ -75,7 +141,9 @@ const AdminDashboard = () => {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loading ? '...' : stats.weekActivities}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Reuniões e encontros
               </p>
