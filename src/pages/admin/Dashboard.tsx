@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/navigation/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
+import { PastoralAlertsCard } from '@/components/alerts/PastoralAlertsCard';
 
 const AdminDashboard = () => {
   const { profile } = useAuth();
@@ -187,19 +188,7 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Alertas Recentes</CardTitle>
-              <CardDescription>
-                Situações que precisam da sua atenção
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground py-8">
-                Nenhum alerta no momento
-              </div>
-            </CardContent>
-          </Card>
+          <PastoralAlertsCard />
         </div>
       </div>
     </div>

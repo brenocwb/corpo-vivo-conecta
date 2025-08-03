@@ -1,11 +1,59 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { User, Home, BookOpen, Target, Calendar } from 'lucide-react';
+import { User, Home, BookOpen, Target, Calendar, Heart, MessageSquare, Trophy, Edit } from 'lucide-react';
 import Navbar from '@/components/navigation/Navbar';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const MembroPerfil = () => {
   const { profile } = useAuth();
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [spiritualData, setSpiritualData] = useState({
+    prayer_requests: '',
+    spiritual_challenges: '',
+    growth_milestones: ''
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setSpiritualData({
+        prayer_requests: (profile as any).prayer_requests || '',
+        spiritual_challenges: (profile as any).spiritual_challenges || '',
+        growth_milestones: (profile as any).growth_milestones || ''
+      });
+    }
+  }, [profile]);
+
+  const handleSaveSpiritualData = async () => {
+    if (!profile?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(spiritualData)
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações espirituais foram salvas com sucesso.",
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Erro ao salvar dados espirituais:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar as informações.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,6 +152,147 @@ const MembroPerfil = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Heart className="mr-2 h-5 w-5" />
+                    Pedidos de Oração
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditing(!isEditing)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </CardTitle>
+                <CardDescription>
+                  Suas necessidades de oração e intercessão
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="prayer_requests">Pedidos de Oração</Label>
+                      <Textarea
+                        id="prayer_requests"
+                        value={spiritualData.prayer_requests}
+                        onChange={(e) => setSpiritualData({
+                          ...spiritualData,
+                          prayer_requests: e.target.value
+                        })}
+                        placeholder="Compartilhe seus pedidos de oração..."
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {spiritualData.prayer_requests ? (
+                      <p className="text-sm whitespace-pre-wrap">{spiritualData.prayer_requests}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhum pedido de oração cadastrado</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Desafios Espirituais
+                </CardTitle>
+                <CardDescription>
+                  Áreas em que você está crescendo
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="spiritual_challenges">Desafios e Crescimento</Label>
+                      <Textarea
+                        id="spiritual_challenges"
+                        value={spiritualData.spiritual_challenges}
+                        onChange={(e) => setSpiritualData({
+                          ...spiritualData,
+                          spiritual_challenges: e.target.value
+                        })}
+                        placeholder="Quais são seus desafios espirituais atuais?"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {spiritualData.spiritual_challenges ? (
+                      <p className="text-sm whitespace-pre-wrap">{spiritualData.spiritual_challenges}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhum desafio registrado</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Trophy className="mr-2 h-5 w-5" />
+                  Marcos de Crescimento
+                </CardTitle>
+                <CardDescription>
+                  Testemunhos e conquistas espirituais
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="growth_milestones">Marcos e Testemunhos</Label>
+                      <Textarea
+                        id="growth_milestones"
+                        value={spiritualData.growth_milestones}
+                        onChange={(e) => setSpiritualData({
+                          ...spiritualData,
+                          growth_milestones: e.target.value
+                        })}
+                        placeholder="Registre seus testemunhos e marcos de crescimento..."
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {spiritualData.growth_milestones ? (
+                      <p className="text-sm whitespace-pre-wrap">{spiritualData.growth_milestones}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhum marco registrado</p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {isEditing && (
+              <div className="flex space-x-2">
+                <Button onClick={handleSaveSpiritualData} className="flex-1">
+                  Salvar Alterações
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )}
 
             <Card>
               <CardHeader>
