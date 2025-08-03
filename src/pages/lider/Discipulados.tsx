@@ -211,7 +211,7 @@ const LiderDiscipulados = () => {
     }
   };
   
-  const fetchMeetingHistory = async (discipuladoId: string) => {
+  const fetchMeetingHistory = async (discipuladoId: string, discipleName: string) => {
     try {
       const { data, error } = await supabase
         .from('encontros')
@@ -221,6 +221,7 @@ const LiderDiscipulados = () => {
       
       if (error) throw error;
       setMeetingHistory(data || []);
+      setSelectedDisciple({ id: discipuladoId, disciple: { full_name: discipleName } } as any);
       setIsMeetingsHistoryDialogOpen(true);
     } catch (error) {
       console.error('Erro ao buscar histórico de encontros:', error);
@@ -419,7 +420,7 @@ const LiderDiscipulados = () => {
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="font-semibold text-lg">{discipulado.disciple.full_name}</h3>
                         <div className="flex gap-2">
-                            <Button size="sm" variant="outline" onClick={() => fetchMeetingHistory(discipulado.id)}>
+                            <Button size="sm" variant="outline" onClick={() => fetchMeetingHistory(discipulado.id, discipulado.disciple.full_name)}>
                                 <Calendar className="mr-2 h-4 w-4" />
                                 Histórico
                             </Button>
