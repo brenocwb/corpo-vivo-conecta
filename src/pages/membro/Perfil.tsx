@@ -34,7 +34,12 @@ const MembroPerfil = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [userPlans, setUserPlans] = useState<PlanProgress[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState({
+    prayer_requests: false,
+    spiritual_challenges: false,
+    growth_milestones: false,
+    personal_info: false,
+  });
   const [spiritualData, setSpiritualData] = useState({
     prayer_requests: '',
     spiritual_challenges: '',
@@ -73,13 +78,13 @@ const MembroPerfil = () => {
     }
   };
 
-  const handleSaveSpiritualData = async () => {
+  const handleSaveSpiritualData = async (field: keyof typeof spiritualData) => {
     if (!profile?.id) return;
 
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(spiritualData)
+        .update({ [field]: spiritualData[field] })
         .eq('id', profile.id);
 
       if (error) throw error;
@@ -88,7 +93,7 @@ const MembroPerfil = () => {
         title: "Perfil atualizado",
         description: "Suas informações espirituais foram salvas com sucesso.",
       });
-      setIsEditing(false);
+      setIsEditing({ ...isEditing, [field]: false });
     } catch (error) {
       console.error('Erro ao salvar dados espirituais:', error);
       toast({
@@ -97,6 +102,14 @@ const MembroPerfil = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleCancelSpiritualData = (field: keyof typeof spiritualData) => {
+    setIsEditing({ ...isEditing, [field]: false });
+    setSpiritualData({
+      ...spiritualData,
+      [field]: (profile as any)[field] || '',
+    });
   };
 
   return (
@@ -115,9 +128,18 @@ const MembroPerfil = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-1">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <User className="mr-2 h-5 w-5" />
-                Informações Pessoais
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <User className="mr-2 h-5 w-5" />
+                  Informações Pessoais
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsEditing({ ...isEditing, personal_info: !isEditing.personal_info })}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -150,7 +172,7 @@ const MembroPerfil = () => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setIsEditing(!isEditing)}
+                    onClick={() => setIsEditing({ ...isEditing, prayer_requests: !isEditing.prayer_requests })}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -160,7 +182,7 @@ const MembroPerfil = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {isEditing ? (
+                {isEditing.prayer_requests ? (
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="prayer_requests">Pedidos de Oração</Label>
@@ -174,6 +196,19 @@ const MembroPerfil = () => {
                         placeholder="Compartilhe seus pedidos de oração..."
                         className="mt-1"
                       />
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={() => handleSaveSpiritualData('prayer_requests')} className="flex-1">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Salvar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleCancelSpiritualData('prayer_requests')}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -198,7 +233,7 @@ const MembroPerfil = () => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setIsEditing(!isEditing)}
+                    onClick={() => setIsEditing({ ...isEditing, spiritual_challenges: !isEditing.spiritual_challenges })}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -208,7 +243,7 @@ const MembroPerfil = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {isEditing ? (
+                {isEditing.spiritual_challenges ? (
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="spiritual_challenges">Desafios e Crescimento</Label>
@@ -222,6 +257,19 @@ const MembroPerfil = () => {
                         placeholder="Quais são seus desafios espirituais atuais?"
                         className="mt-1"
                       />
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={() => handleSaveSpiritualData('spiritual_challenges')} className="flex-1">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Salvar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleCancelSpiritualData('spiritual_challenges')}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -246,7 +294,7 @@ const MembroPerfil = () => {
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setIsEditing(!isEditing)}
+                    onClick={() => setIsEditing({ ...isEditing, growth_milestones: !isEditing.growth_milestones })}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -256,7 +304,7 @@ const MembroPerfil = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {isEditing ? (
+                {isEditing.growth_milestones ? (
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="growth_milestones">Marcos e Testemunhos</Label>
@@ -271,6 +319,19 @@ const MembroPerfil = () => {
                         className="mt-1"
                       />
                     </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={() => handleSaveSpiritualData('growth_milestones')} className="flex-1">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Salvar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleCancelSpiritualData('growth_milestones')}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -284,22 +345,6 @@ const MembroPerfil = () => {
               </CardContent>
             </Card>
             
-            {isEditing && (
-              <div className="flex space-x-2">
-                <Button onClick={handleSaveSpiritualData} className="flex-1">
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Salvar Alterações
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            )}
-
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -392,4 +437,3 @@ const MembroPerfil = () => {
 };
 
 export default MembroPerfil;
-
