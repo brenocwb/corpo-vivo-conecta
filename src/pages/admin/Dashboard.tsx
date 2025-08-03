@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { Users, Home, BookOpen, Activity, UserPlus, BarChart3 } from 'lucide-react';
+import { Users, Home, BookOpen, Activity, UserPlus, BarChart3, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/navigation/Navbar';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,50 +14,41 @@ const AdminDashboard = () => {
     totalMembers: 0,
     totalGroups: 0,
     totalDiscipleships: 0,
-    weekActivities: 0
+    weekMeetings: 0
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!profile?.church_id) return;
+      if (!profile?.church_id) {
+        setLoading(false);
+        return;
+      }
       
       try {
-        // Buscar total de membros
-        const { data: members } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('church_id', profile.church_id);
-
-        // Buscar total de grupos ativos
-        const { data: groups } = await supabase
-          .from('house_groups')
-          .select('id')
-          .eq('church_id', profile.church_id)
-          .eq('active', true);
-
-        // Buscar discipulados ativos
-        const { data: discipleships } = await supabase
-          .from('discipulados')
-          .select('id')
-          .eq('active', true);
-
-        // Buscar atividades desta semana
         const today = new Date();
         const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
         const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
-        
-        const { data: activities } = await supabase
-          .from('group_meetings')
-          .select('id')
-          .gte('meeting_date', startOfWeek.toISOString().split('T')[0])
-          .lte('meeting_date', endOfWeek.toISOString().split('T')[0]);
+
+        const [
+          { count: totalMembers },
+          { count: totalGroups },
+          { count: totalDiscipleships },
+          { count: weekMeetings }
+        ] = await Promise.all([
+          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('church_id', profile.church_id),
+          supabase.from('house_groups').select('id', { count: 'exact', head: true }).eq('church_id', profile.church_id),
+          supabase.from('discipulados').select('id', { count: 'exact', head: true }).eq('active', true),
+          supabase.from('encontros').select('id', { count: 'exact', head: true })
+            .gte('meeting_date', startOfWeek.toISOString().split('T')[0])
+            .lte('meeting_date', endOfWeek.toISOString().split('T')[0])
+        ]);
 
         setStats({
-          totalMembers: members?.length || 0,
-          totalGroups: groups?.length || 0,
-          totalDiscipleships: discipleships?.length || 0,
-          weekActivities: activities?.length || 0
+          totalMembers: totalMembers || 0,
+          totalGroups: totalGroups || 0,
+          totalDiscipleships: totalDiscipleships || 0,
+          weekMeetings: weekMeetings || 0
         });
       } catch (error) {
         console.error('Erro ao buscar estatísticas:', error);
@@ -65,7 +56,7 @@ const AdminDashboard = () => {
         setLoading(false);
       }
     };
-
+    
     fetchStats();
   }, [profile?.church_id]);
 
@@ -92,7 +83,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {loading ? '...' : stats.totalMembers}
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : stats.totalMembers}
               </div>
               <p className="text-xs text-muted-foreground">
                 Membros cadastrados na igreja
@@ -109,7 +100,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {loading ? '...' : stats.totalGroups}
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : stats.totalGroups}
               </div>
               <p className="text-xs text-muted-foreground">
                 Grupos ativos na igreja
@@ -126,7 +117,7 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {loading ? '...' : stats.totalDiscipleships}
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : stats.totalDiscipleships}
               </div>
               <p className="text-xs text-muted-foreground">
                 Relações de discipulado
@@ -143,10 +134,10 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {loading ? '...' : stats.weekActivities}
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : stats.weekMeetings}
               </div>
               <p className="text-xs text-muted-foreground">
-                Reuniões e encontros
+                Encontros registrados
               </p>
             </CardContent>
           </Card>
