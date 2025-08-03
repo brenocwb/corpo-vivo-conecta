@@ -1,17 +1,39 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
-import { User, Home, BookOpen, Target, Calendar, Heart, MessageSquare, Trophy, Edit } from 'lucide-react';
-import Navbar from '@/components/navigation/Navbar';
-import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { User, Home, BookOpen, Target, Calendar, Heart, MessageSquare, Trophy, Edit, CheckCircle } from 'lucide-react';
+import Navbar from '@/components/navigation/Navbar';
+
+// Tipos de dados para os planos e progresso
+interface DiscipleshipPlan {
+  id: string;
+  title: string;
+  description: string;
+  plan_type: 'texto' | 'pdf' | 'video' | 'link';
+  steps_count: number;
+}
+
+interface PlanProgress {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  current_step: number;
+  status: 'nao_iniciado' | 'em_progresso' | 'concluido' | 'arquivado' | 'removido';
+  started_at: string;
+  plan: DiscipleshipPlan;
+}
 
 const MembroPerfil = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [userPlans, setUserPlans] = useState<PlanProgress[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [spiritualData, setSpiritualData] = useState({
     prayer_requests: '',
@@ -20,7 +42,8 @@ const MembroPerfil = () => {
   });
 
   useEffect(() => {
-    if (profile) {
+    if (profile?.id) {
+      fetchUserPlans();
       setSpiritualData({
         prayer_requests: (profile as any).prayer_requests || '',
         spiritual_challenges: (profile as any).spiritual_challenges || '',
@@ -28,6 +51,27 @@ const MembroPerfil = () => {
       });
     }
   }, [profile]);
+
+  const fetchUserPlans = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('plan_progress')
+        .select(`
+          *,
+          plan:plans(title, description, plan_type, steps_count)
+        `)
+        .eq('user_id', profile?.id)
+        .order('started_at', { ascending: false });
+
+      if (error) throw error;
+      setUserPlans(data as PlanProgress[]);
+    } catch (error) {
+      console.error('Erro ao buscar planos do usuário:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSaveSpiritualData = async () => {
     if (!profile?.id) return;
@@ -98,63 +142,6 @@ const MembroPerfil = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Home className="mr-2 h-5 w-5" />
-                  Meu Grupo Familiar
-                </CardTitle>
-                <CardDescription>
-                  Informações sobre seu grupo de casa
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground py-8">
-                  Você ainda não está vinculado a um grupo familiar
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BookOpen className="mr-2 h-5 w-5" />
-                  Discipulado
-                </CardTitle>
-                <CardDescription>
-                  Sua caminhada de crescimento espiritual
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground py-8">
-                  Nenhum discipulado ativo no momento
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Target className="mr-2 h-5 w-5" />
-                  Minhas Atividades
-                </CardTitle>
-                <CardDescription>
-                  Orações, metas e tarefas espirituais
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center text-muted-foreground py-4">
-                    Nenhuma atividade cadastrada
-                  </div>
-                  <Button className="w-full">
-                    <Target className="mr-2 h-4 w-4" />
-                    Nova Atividade
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Heart className="mr-2 h-5 w-5" />
@@ -203,9 +190,18 @@ const MembroPerfil = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MessageSquare className="mr-2 h-5 w-5" />
-                  Desafios Espirituais
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <MessageSquare className="mr-2 h-5 w-5" />
+                    Desafios Espirituais
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditing(!isEditing)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </CardTitle>
                 <CardDescription>
                   Áreas em que você está crescendo
@@ -242,9 +238,18 @@ const MembroPerfil = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Trophy className="mr-2 h-5 w-5" />
-                  Marcos de Crescimento
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Trophy className="mr-2 h-5 w-5" />
+                    Marcos de Crescimento
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditing(!isEditing)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </CardTitle>
                 <CardDescription>
                   Testemunhos e conquistas espirituais
@@ -278,14 +283,15 @@ const MembroPerfil = () => {
                 )}
               </CardContent>
             </Card>
-
+            
             {isEditing && (
               <div className="flex space-x-2">
                 <Button onClick={handleSaveSpiritualData} className="flex-1">
+                  <CheckCircle className="mr-2 h-4 w-4" />
                   Salvar Alterações
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setIsEditing(false)}
                   className="flex-1"
                 >
@@ -297,16 +303,84 @@ const MembroPerfil = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Próximos Eventos
+                  <BookOpen className="mr-2 h-5 w-5" />
+                  Planos de Discipulado
                 </CardTitle>
                 <CardDescription>
-                  Reuniões e encontros agendados
+                  Sua jornada de crescimento espiritual
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    Carregando planos...
+                  </div>
+                ) : userPlans.length > 0 ? (
+                  <div className="space-y-4">
+                    {userPlans.map((planProgress) => (
+                      <div key={planProgress.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{planProgress.plan.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Progresso: {planProgress.current_step} de {planProgress.plan.steps_count}
+                            </p>
+                          </div>
+                          <Button size="sm" variant="outline">
+                            Abrir Plano
+                          </Button>
+                        </div>
+                        <Progress
+                          value={(planProgress.current_step / planProgress.plan.steps_count) * 100}
+                          className="mt-2"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    Nenhum plano de discipulado ativo no momento
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Home className="mr-2 h-5 w-5" />
+                  Meu Grupo Familiar
+                </CardTitle>
+                <CardDescription>
+                  Informações sobre seu grupo de casa
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center text-muted-foreground py-8">
-                  Nenhum evento próximo
+                  Você ainda não está vinculado a um grupo familiar
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Target className="mr-2 h-5 w-5" />
+                  Minhas Atividades
+                </CardTitle>
+                <CardDescription>
+                  Orações, metas e tarefas espirituais
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center text-muted-foreground py-4">
+                    Nenhuma atividade cadastrada
+                  </div>
+                  <Button className="w-full">
+                    <Target className="mr-2 h-4 w-4" />
+                    Nova Atividade
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -318,3 +392,4 @@ const MembroPerfil = () => {
 };
 
 export default MembroPerfil;
+
