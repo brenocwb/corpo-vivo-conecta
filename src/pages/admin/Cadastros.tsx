@@ -1,21 +1,64 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Plus, Users, Home, Calendar } from 'lucide-react';
-import Navbar from '../../components/navigation/Navbar';
+import { UserPlus, User, Edit, Trash2, Mail } from 'lucide-react';
+import Navbar from '@/components/navigation/Navbar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+
+interface Profile {
+  id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  role: 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro';
+  church_id: string;
+}
+
+interface Group {
+  id: string;
+  name: string;
+  address: string;
+  description: string;
+  meeting_day: number;
+  meeting_time: string;
+  leader_id: string;
+  church_id: string;
+  leader: {
+    full_name: string;
+  };
+}
+
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  event_date: string;
+  location: string;
+  is_recurring: boolean;
+  recurrence_pattern: string;
+  church_id: string;
+  created_by: string;
+}
 
 const CadastrosPage = () => {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<Profile[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [leaders, setLeaders] = useState<any[]>([]);
+  const [filterRole, setFilterRole] = useState('all');
 
   const [userForm, setUserForm] = useState({
     full_name: '',
@@ -49,22 +92,103 @@ const CadastrosPage = () => {
     recurrence_pattern: ''
   });
 
-  // Buscar líderes para o dropdown
-  useEffect(() => {
-    const fetchLeaders = async () => {
-      if (!profile?.church_id) return;
-      
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .eq('church_id', profile.church_id)
-        .in('role', ['admin', 'pastor', 'missionario', 'lider']);
-      
-      setLeaders(data || []);
+  const getRoleLabel = (role: string) => {
+    const labels = {
+      pastor: 'Pastor',
+      missionario: 'Missionário',
+      lider: 'Líder',
+      admin: 'Administrador',
+      membro: 'Discípulo'
     };
-    
-    fetchLeaders();
+    return labels[role as keyof typeof labels] || role;
+  };
+
+  const getRoleVariant = (role: string) => {
+    const variants = {
+      pastor: 'default',
+      missionario: 'secondary',
+      lider: 'outline',
+      admin: 'destructive',
+      membro: 'secondary'
+    };
+    return variants[role as keyof typeof variants] || 'outline';
+  };
+  
+  const weekDays = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+
+  // Fetch all data
+  useEffect(() => {
+    if (profile?.church_id) {
+      fetchUsers();
+      fetchGroups();
+      fetchEvents();
+      fetchLeaders();
+    }
   }, [profile?.church_id]);
+  
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('church_id', profile?.church_id)
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+      toast.error('Erro ao carregar lista de usuários.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const fetchGroups = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('house_groups')
+        .select(`*, leader:profiles!house_groups_leader_id_fkey(full_name)`)
+        .eq('church_id', profile?.church_id)
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      setGroups(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar grupos:', error);
+      toast.error('Erro ao carregar lista de grupos.');
+    }
+  };
+  
+  const fetchEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('church_id', profile?.church_id)
+        .order('event_date', { ascending: true });
+        
+      if (error) throw error;
+      setEvents(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar eventos:', error);
+      toast.error('Erro ao carregar lista de eventos.');
+    }
+  };
+  
+  const fetchLeaders = async () => {
+    if (!profile?.church_id) return;
+      
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .eq('church_id', profile.church_id)
+      .in('role', ['admin', 'pastor', 'missionario', 'lider']);
+      
+    setLeaders(data || []);
+  };
 
   const handleUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,30 +202,25 @@ const CadastrosPage = () => {
 
       // First create auth user
       const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: userForm.email,
         password: tempPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: userForm.full_name,
-          }
-        }
+        email_confirm: true,
       });
 
       if (authError) throw authError;
 
-      // Wait a moment for the trigger to create the initial profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Then update the profile with additional data
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
+      // Add profile info to the database
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            user_id: authData.user.id,
+            church_id: profile.church_id,
             full_name: userForm.full_name,
+            email: userForm.email,
             phone: userForm.phone,
-            role: userForm.role as any,
+            role: userForm.role,
             supervisor_id: userForm.supervisor_id || null,
             birth_date: userForm.birth_date || null,
             address: userForm.address,
@@ -109,14 +228,12 @@ const CadastrosPage = () => {
             emergency_phone: userForm.emergency_phone,
             baptism_date: userForm.baptism_date || null,
             conversion_date: userForm.conversion_date || null,
-            church_id: profile.church_id
-          })
-          .eq('user_id', authData.user.id);
+          },
+        ]);
 
-        if (profileError) throw profileError;
-      }
+      if (profileError) throw profileError;
 
-      toast.success(`Usuário cadastrado com sucesso! Senha temporária: ${tempPassword}`);
+      toast.success('Usuário criado com sucesso! Uma senha temporária foi enviada para o e-mail.');
       setUserForm({
         full_name: '',
         email: '',
@@ -130,6 +247,7 @@ const CadastrosPage = () => {
         baptism_date: '',
         conversion_date: ''
       });
+      fetchUsers();
     } catch (error: any) {
       toast.error('Erro ao cadastrar usuário: ' + error.message);
     } finally {
@@ -173,6 +291,7 @@ const CadastrosPage = () => {
         meeting_time: '',
         leader_id: ''
       });
+      fetchGroups();
     } catch (error: any) {
       toast.error('Erro ao cadastrar grupo: ' + error.message);
     } finally {
@@ -213,12 +332,15 @@ const CadastrosPage = () => {
         is_recurring: false,
         recurrence_pattern: ''
       });
+      fetchEvents();
     } catch (error: any) {
       toast.error('Erro ao cadastrar evento: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
+
+  const filteredUsers = users.filter(user => filterRole === 'all' || user.role === filterRole);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
@@ -364,6 +486,69 @@ const CadastrosPage = () => {
                 </form>
               </CardContent>
             </Card>
+            
+            <Card className="mt-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle>Lista de Usuários</CardTitle>
+                    <div className="flex items-center gap-2">
+                        <Label htmlFor="role-filter">Filtrar por Função:</Label>
+                        <Select value={filterRole} onValueChange={setFilterRole}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Todas as funções" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todas</SelectItem>
+                                <SelectItem value="admin">Administrador</SelectItem>
+                                <SelectItem value="pastor">Pastor</SelectItem>
+                                <SelectItem value="missionario">Missionário</SelectItem>
+                                <SelectItem value="lider">Líder</SelectItem>
+                                <SelectItem value="membro">Discípulo</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {loading ? (
+                        <div className="text-center py-8">Carregando usuários...</div>
+                    ) : filteredUsers.length === 0 ? (
+                        <div className="text-center py-8">Nenhum usuário cadastrado.</div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Nome</TableHead>
+                                    <TableHead>E-mail</TableHead>
+                                    <TableHead>Telefone</TableHead>
+                                    <TableHead>Função</TableHead>
+                                    <TableHead>Ações</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredUsers.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="font-medium">{user.full_name}</TableCell>
+                                        <TableCell>{user.email}</TableCell>
+                                        <TableCell>{user.phone || '-'}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={getRoleVariant(user.role) as any}>{getRoleLabel(user.role)}</Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex gap-2">
+                                                <Button variant="outline" size="sm" onClick={() => {}}>
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="outline" size="sm" className="text-destructive" onClick={() => {}}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="grupos">
@@ -454,6 +639,47 @@ const CadastrosPage = () => {
                 </form>
               </CardContent>
             </Card>
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle>Lista de Grupos Familiares</CardTitle>
+                    <CardDescription>
+                        Visualize e edite os grupos familiares da igreja
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nome</TableHead>
+                                <TableHead>Líder</TableHead>
+                                <TableHead>Dia</TableHead>
+                                <TableHead>Horário</TableHead>
+                                <TableHead>Ações</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {groups.map((group) => (
+                                <TableRow key={group.id}>
+                                    <TableCell className="font-medium">{group.name}</TableCell>
+                                    <TableCell>{group.leader?.full_name || 'N/A'}</TableCell>
+                                    <TableCell>{weekDays[group.meeting_day]}</TableCell>
+                                    <TableCell>{group.meeting_time}</TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => {}}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="outline" size="sm" className="text-destructive" onClick={() => {}}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="eventos">
@@ -535,14 +761,59 @@ const CadastrosPage = () => {
                 </form>
               </CardContent>
             </Card>
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle>Lista de Eventos</CardTitle>
+                    <CardDescription>
+                        Visualize e gerencie os eventos da igreja
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Título</TableHead>
+                                <TableHead>Data</TableHead>
+                                <TableHead>Local</TableHead>
+                                <TableHead>Recorrência</TableHead>
+                                <TableHead>Ações</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {events.map((event) => (
+                                <TableRow key={event.id}>
+                                    <TableCell className="font-medium">{event.title}</TableCell>
+                                    <TableCell>{new Date(event.event_date).toLocaleDateString('pt-BR')}</TableCell>
+                                    <TableCell>{event.location}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={event.is_recurring ? 'default' : 'secondary'}>
+                                            {event.is_recurring ? getRoleLabel(event.recurrence_pattern) : 'Não'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => {}}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="outline" size="sm" className="text-destructive" onClick={() => {}}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="integracao">
             <Card>
               <CardHeader>
-                <CardTitle>Integração com Google Calendar</CardTitle>
+                <CardTitle>Integrações</CardTitle>
                 <CardDescription>
-                  Configure a sincronização automática com o Google Agenda
+                  Configure a sincronização com serviços externos
                 </CardDescription>
               </CardHeader>
               <CardContent>
