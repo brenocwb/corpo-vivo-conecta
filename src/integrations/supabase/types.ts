@@ -652,6 +652,142 @@ export type Database = {
           },
         ]
       }
+      plan_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          id: string
+          plan_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["plan_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          plan_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["plan_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          plan_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["plan_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_progress_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_steps: {
+        Row: {
+          content: string | null
+          created_at: string
+          description: string | null
+          id: string
+          plan_id: string
+          step_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          plan_id: string
+          step_order: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          plan_id?: string
+          step_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_steps_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          church_id: string
+          content: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          plan_type: Database["public"]["Enums"]["plan_type"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          church_id: string
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          plan_type?: Database["public"]["Enums"]["plan_type"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          church_id?: string
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          plan_type?: Database["public"]["Enums"]["plan_type"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plans_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -799,6 +935,13 @@ export type Database = {
         | "novo_convertido"
         | "grupo_sobrecarregado"
         | "encontro_atrasado"
+      plan_status:
+        | "nao_iniciado"
+        | "em_progresso"
+        | "concluido"
+        | "arquivado"
+        | "removido"
+      plan_type: "texto" | "pdf" | "video" | "link"
       user_role: "admin" | "lider" | "membro" | "pastor" | "missionario"
     }
     CompositeTypes: {
@@ -934,6 +1077,14 @@ export const Constants = {
         "grupo_sobrecarregado",
         "encontro_atrasado",
       ],
+      plan_status: [
+        "nao_iniciado",
+        "em_progresso",
+        "concluido",
+        "arquivado",
+        "removido",
+      ],
+      plan_type: ["texto", "pdf", "video", "link"],
       user_role: ["admin", "lider", "membro", "pastor", "missionario"],
     },
   },
