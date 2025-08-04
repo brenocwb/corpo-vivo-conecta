@@ -400,6 +400,7 @@ const RelatoriosPage = () => {
                       </TableRow>
                     ))}
                   </TableBody>
+                </Table>
                 </CardContent>
               </Card>
             </TabsContent>

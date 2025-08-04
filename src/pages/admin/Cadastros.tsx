@@ -20,9 +20,15 @@ interface Profile {
   user_id: string;
   full_name: string;
   email: string;
-  phone: string;
+  phone?: string;
   role: 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro';
   church_id: string;
+  birth_date?: string;
+  address?: string;
+  emergency_contact?: string;
+  emergency_phone?: string;
+  baptism_date?: string;
+  conversion_date?: string;
 }
 
 interface Group {
@@ -213,7 +219,18 @@ const CadastrosPage = () => {
       if(editingUser) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update(userForm)
+          .update({
+            full_name: userForm.full_name,
+            email: userForm.email,
+            phone: userForm.phone,
+            role: userForm.role as 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro',
+            address: userForm.address,
+            emergency_contact: userForm.emergency_contact,
+            emergency_phone: userForm.emergency_phone,
+            birth_date: userForm.birth_date || null,
+            baptism_date: userForm.baptism_date || null,
+            conversion_date: userForm.conversion_date || null,
+          })
           .eq('id', editingUser.id);
         
         if (profileError) throw profileError;
@@ -234,23 +251,20 @@ const CadastrosPage = () => {
         // Add profile info to the database
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert([
-            {
-              user_id: authData.user.id,
-              church_id: profile.church_id,
-              full_name: userForm.full_name,
-              email: userForm.email,
-              phone: userForm.phone,
-              role: userForm.role,
-              supervisor_id: userForm.supervisor_id || null,
-              birth_date: userForm.birth_date || null,
-              address: userForm.address,
-              emergency_contact: userForm.emergency_contact,
-              emergency_phone: userForm.emergency_phone,
-              baptism_date: userForm.baptism_date || null,
-              conversion_date: userForm.conversion_date || null,
-            },
-          ]);
+          .insert({
+            user_id: authData.user.id,
+            church_id: profile.church_id,
+            full_name: userForm.full_name,
+            email: userForm.email,
+            phone: userForm.phone,
+            role: userForm.role as 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro',
+            address: userForm.address,
+            emergency_contact: userForm.emergency_contact,
+            emergency_phone: userForm.emergency_phone,
+            birth_date: userForm.birth_date || null,
+            baptism_date: userForm.baptism_date || null,
+            conversion_date: userForm.conversion_date || null,
+          });
 
         if (profileError) throw profileError;
 
@@ -326,7 +340,14 @@ const CadastrosPage = () => {
       if(editingGroup) {
         const { error } = await supabase
           .from('house_groups')
-          .update(groupForm)
+          .update({
+            name: groupForm.name,
+            address: groupForm.address,
+            description: groupForm.description,
+            meeting_day: parseInt(groupForm.meeting_day),
+            meeting_time: groupForm.meeting_time,
+            leader_id: groupForm.leader_id,
+          })
           .eq('id', editingGroup.id);
           
         if (error) throw error;
@@ -490,7 +511,7 @@ const CadastrosPage = () => {
         <Tabs defaultValue="pessoas" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="pessoas" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+              <UserPlus className="h-4 w-4" />
               Pessoas
             </TabsTrigger>
             <TabsTrigger value="grupos" className="flex items-center gap-2">

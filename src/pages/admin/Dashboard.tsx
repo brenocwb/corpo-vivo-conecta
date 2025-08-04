@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { Users, Home, BookOpen, Activity, UserPlus, BarChart3, Loader2, Bell, AlertTriangle, Calendar, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
