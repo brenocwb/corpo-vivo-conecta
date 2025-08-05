@@ -788,6 +788,78 @@ export type Database = {
           },
         ]
       }
+      prayer_group_members: {
+        Row: {
+          created_at: string
+          id: string
+          is_praying: boolean
+          prayer_request_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_praying?: boolean
+          prayer_request_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_praying?: boolean
+          prayer_request_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      prayer_requests: {
+        Row: {
+          answered_at: string | null
+          category: string
+          church_id: string
+          created_at: string
+          description: string | null
+          id: string
+          private: boolean
+          requested_by: string
+          status: string
+          testimony: string | null
+          title: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          answered_at?: string | null
+          category?: string
+          church_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          private?: boolean
+          requested_by: string
+          status?: string
+          testimony?: string | null
+          title: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          answered_at?: string | null
+          category?: string
+          church_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          private?: boolean
+          requested_by?: string
+          status?: string
+          testimony?: string | null
+          title?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -871,6 +943,93 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      resources: {
+        Row: {
+          author: string | null
+          category: string
+          church_id: string | null
+          content: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          difficulty_level: string
+          id: string
+          is_public: boolean
+          title: string
+          type: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          author?: string | null
+          category: string
+          church_id?: string | null
+          content?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          difficulty_level?: string
+          id?: string
+          is_public?: boolean
+          title: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          author?: string | null
+          category?: string
+          church_id?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          difficulty_level?: string
+          id?: string
+          is_public?: boolean
+          title?: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      spiritual_growth: {
+        Row: {
+          areas_improvement: string[] | null
+          created_at: string
+          growth_goals: string[] | null
+          id: string
+          last_assessment: string | null
+          maturity_level: string
+          spiritual_gifts: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          areas_improvement?: string[] | null
+          created_at?: string
+          growth_goals?: string[] | null
+          id?: string
+          last_assessment?: string | null
+          maturity_level?: string
+          spiritual_gifts?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          areas_improvement?: string[] | null
+          created_at?: string
+          growth_goals?: string[] | null
+          id?: string
+          last_assessment?: string | null
+          maturity_level?: string
+          spiritual_gifts?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       whatsapp_integration: {
         Row: {

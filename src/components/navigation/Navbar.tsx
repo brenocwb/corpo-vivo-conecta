@@ -23,7 +23,9 @@ import {
   Settings,
   LogOut,
   Menu,
-  User
+  User,
+  Library,
+  TrendingUp
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -35,6 +37,12 @@ const Navbar = () => {
   if (!profile) return null;
 
   const getNavItems = () => {
+    const commonItems = [
+      { href: '/centro-oracao', label: 'Centro de Oração', icon: Heart },
+      { href: '/biblioteca-recursos', label: 'Biblioteca', icon: Library },
+      { href: '/crescimento-espiritual', label: 'Crescimento', icon: TrendingUp },
+    ];
+
     switch (profile.role) {
       case 'admin':
       case 'pastor':
@@ -43,17 +51,20 @@ const Navbar = () => {
           { href: '/admin/cadastros', label: 'Cadastros', icon: UserPlus },
           { href: '/admin/grupos', label: 'Grupos', icon: Home },
           { href: '/admin/estudos', label: 'Estudos', icon: BookOpen },
-          { href: '/admin/planos', label: 'Planos', icon: BookOpen }, // <-- Novo item
+          { href: '/admin/planos', label: 'Planos', icon: BookOpen },
           { href: '/admin/relatorios', label: 'Relatórios', icon: BarChart3 },
+          ...commonItems,
         ];
       case 'lider':
         return [
           { href: '/lider/grupos', label: 'Grupos', icon: Home },
           { href: '/lider/discipulados', label: 'Discipulados', icon: BookOpen },
           { href: '/lider/reunioes', label: 'Reuniões', icon: Calendar },
+          ...commonItems,
         ];
       default:
         return [
+          ...commonItems,
           { href: '/meu-perfil', label: 'Meu Perfil', icon: User },
         ];
     }

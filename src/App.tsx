@@ -17,6 +17,9 @@ import LiderDiscipulados from "./pages/lider/Discipulados";
 import LiderReunioes from "./pages/lider/Reunioes";
 import MembroPerfil from "./pages/membro/Perfil";
 import MembroPlanoDetalhe from "./pages/membro/PlanoDetalhe";
+import CentroOracao from "./pages/CentroOracao";
+import BibliotecaRecursos from "./pages/BibliotecaRecursos";
+import CrescimentoEspiritual from "./pages/CrescimentoEspiritual";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,9 @@ const App = () => (
             <Route path="/lider/grupos" element={<LiderGrupos />} />
             <Route path="/lider/discipulados" element={<LiderDiscipulados />} />
             <Route path="/lider/reunioes" element={<LiderReunioes />} />
+            <Route path="/centro-oracao" element={<CentroOracao />} />
+            <Route path="/biblioteca-recursos" element={<BibliotecaRecursos />} />
+            <Route path="/crescimento-espiritual" element={<CrescimentoEspiritual />} />
             <Route path="/meu-perfil" element={<MembroPerfil />} />
             <Route path="/plano/:planId" element={<MembroPlanoDetalhe />} />
             <Route path="*" element={<NotFound />} />
