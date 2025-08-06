@@ -153,6 +153,10 @@ const Navbar = () => {
                     Perfil
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.open('/MANUAL_SISTEMA.md', '_blank')}>
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Manual do Sistema
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
                   Configurações

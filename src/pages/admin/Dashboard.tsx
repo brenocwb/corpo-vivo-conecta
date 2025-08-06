@@ -2,12 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Users, Home, BookOpen, Activity, UserPlus, BarChart3, Loader2, Bell, AlertTriangle, Calendar, CheckCircle } from 'lucide-react';
+import { Users, Home, BookOpen, Activity, UserPlus, BarChart3, Loader2, Bell, AlertTriangle, Calendar, CheckCircle, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/navigation/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import QuickActions from '@/components/common/QuickActions';
+import RecentActivity from '@/components/common/RecentActivity';
 
 interface Alert {
   id: string;
@@ -318,42 +320,42 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <QuickActions />
+          <PastoralAlertsCard />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <RecentActivity />
           <Card>
             <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
+              <CardTitle>Links Úteis</CardTitle>
               <CardDescription>
-                Gerencie os principais aspectos da sua igreja
+                Acesso rápido a recursos importantes
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Link to="/admin/cadastros" className="block">
-                <Button className="w-full justify-start">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Cadastros
+            <CardContent className="space-y-3">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => window.open('/MANUAL_SISTEMA.md', '_blank')}
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                Manual do Sistema
+              </Button>
+              <Link to="/centro-oracao" className="block">
+                <Button variant="outline" className="w-full justify-start">
+                  <Heart className="mr-2 h-4 w-4" />
+                  Centro de Oração
                 </Button>
               </Link>
-              <Link to="/admin/relatorios" className="block">
-                <Button className="w-full justify-start" variant="outline">
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  Relatórios
-                </Button>
-              </Link>
-              <Link to="/admin/grupos" className="block">
-                <Button className="w-full justify-start" variant="outline">
-                  <Home className="mr-2 h-4 w-4" />
-                  Grupos Familiares
-                </Button>
-              </Link>
-              <Link to="/admin/estudos" className="block">
-                <Button className="w-full justify-start" variant="outline">
+              <Link to="/biblioteca-recursos" className="block">
+                <Button variant="outline" className="w-full justify-start">
                   <BookOpen className="mr-2 h-4 w-4" />
-                  Material de Estudo
+                  Biblioteca de Recursos
                 </Button>
               </Link>
             </CardContent>
           </Card>
-
-          <PastoralAlertsCard />
         </div>
       </div>
     </div>
