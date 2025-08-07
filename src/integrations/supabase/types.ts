@@ -102,6 +102,51 @@ export type Database = {
           },
         ]
       }
+      announcements: {
+        Row: {
+          author_id: string
+          church_id: string
+          content: string
+          created_at: string
+          id: string
+          is_featured: boolean
+          is_urgent: boolean
+          target_audience: string
+          target_audience_value: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          church_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          is_urgent?: boolean
+          target_audience?: string
+          target_audience_value?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          church_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          is_urgent?: boolean
+          target_audience?: string
+          target_audience_value?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       atividades: {
         Row: {
           completed: boolean
@@ -1027,6 +1072,27 @@ export type Database = {
           maturity_level?: string
           spiritual_gifts?: string[] | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_announcement_status: {
+        Row: {
+          announcement_id: string
+          id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          id?: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          id?: string
+          read_at?: string | null
           user_id?: string
         }
         Relationships: []

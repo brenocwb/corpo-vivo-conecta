@@ -25,7 +25,9 @@ import {
   Menu,
   User,
   Library,
-  TrendingUp
+  TrendingUp,
+  Megaphone,
+  UserCheck
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -48,6 +50,8 @@ const Navbar = () => {
       case 'pastor':
         return [
           { href: '/admin/dashboard', label: 'Dashboard', icon: BarChart3 },
+          { href: '/admin/usuarios', label: 'Usuários', icon: UserCheck },
+          { href: '/admin/comunicados', label: 'Comunicados', icon: Megaphone },
           { href: '/admin/cadastros', label: 'Cadastros', icon: UserPlus },
           { href: '/admin/grupos', label: 'Grupos', icon: Home },
           { href: '/admin/estudos', label: 'Estudos', icon: BookOpen },
@@ -96,7 +100,7 @@ const Navbar = () => {
           <Link
             key={item.href}
             to={item.href}
-            className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+            className={`flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors text-sm whitespace-nowrap ${
               isActive
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-accent'
@@ -122,8 +126,10 @@ const Navbar = () => {
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-4">
-            <NavContent />
+          <div className="hidden md:flex items-center space-x-2 overflow-x-auto">
+            <div className="flex items-center space-x-1 flex-shrink-0">
+              <NavContent />
+            </div>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

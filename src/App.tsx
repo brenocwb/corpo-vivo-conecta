@@ -7,6 +7,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminUsuarios from "./pages/admin/Usuarios";
+import AdminComunicados from "./pages/admin/Comunicados";
 import AdminCadastros from "./pages/admin/Cadastros";
 import AdminRelatorios from "./pages/admin/Relatorios";
 import AdminGrupos from "./pages/admin/Grupos";
@@ -35,11 +37,13 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/usuarios" element={<AdminUsuarios />} />
+            <Route path="/admin/comunicados" element={<AdminComunicados />} />
             <Route path="/admin/cadastros" element={<AdminCadastros />} />
             <Route path="/admin/relatorios" element={<AdminRelatorios />} />
             <Route path="/admin/grupos" element={<AdminGrupos />} />
             <Route path="/admin/estudos" element={<AdminEstudos />} />
-            <Route path="/admin/planos" element={<AdminPlanos />} /> {/* <-- Nova rota */}
+            <Route path="/admin/planos" element={<AdminPlanos />} />
             <Route path="/lider/grupos" element={<LiderGrupos />} />
             <Route path="/lider/discipulados" element={<LiderDiscipulados />} />
             <Route path="/lider/reunioes" element={<LiderReunioes />} />
