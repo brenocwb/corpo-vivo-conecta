@@ -50,24 +50,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setTimeout(async () => {
             try {
               console.log('Fetching profile for user_id:', session.user.id);
-              const { data: profileData, error } = await supabase
+              
+              // Buscar perfil
+              const { data: profileData, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('user_id', session.user.id)
                 .maybeSingle();
               
-              console.log('Profile query result:', { profileData, error });
-              
-              if (error) {
-                console.error('Error fetching profile:', error);
+              if (profileError) {
+                console.error('Error fetching profile:', profileError);
                 setProfile(null);
-              } else if (profileData) {
-                console.log('Profile found:', profileData);
-                setProfile(profileData);
-              } else {
+                setLoading(false);
+                return;
+              }
+              
+              if (!profileData) {
                 console.log('No profile found for user');
                 setProfile(null);
+                setLoading(false);
+                return;
               }
+              
+              // Buscar role principal da nova tabela user_roles
+              const { data: roleData, error: roleError } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', session.user.id)
+                .order('role', { ascending: true }) // Ordenar por prioridade
+                .limit(1)
+                .maybeSingle();
+              
+              if (roleError) {
+                console.error('Error fetching role:', roleError);
+              }
+              
+              // Combinar perfil com role atualizada
+              const finalProfile = {
+                ...profileData,
+                role: roleData?.role || profileData.role // Usar role de user_roles ou fallback
+              };
+              
+              console.log('Profile with role:', finalProfile);
+              setProfile(finalProfile);
               setLoading(false);
             } catch (err) {
               console.error('Exception fetching profile:', err);

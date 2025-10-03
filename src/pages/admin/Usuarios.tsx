@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 
 interface Profile {
   id: string;
+  user_id: string;
   full_name: string;
   email: string;
   role: 'admin' | 'pastor' | 'lider' | 'membro' | 'missionario';
@@ -83,10 +84,10 @@ const Usuarios = () => {
     if (!selectedUser || !editFormData.role) return;
 
     try {
-      const { error } = await supabase
+      // Atualizar dados do perfil (exceto role)
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          role: editFormData.role,
           phone: editFormData.phone,
           address: editFormData.address,
           birth_date: editFormData.birth_date,
@@ -95,7 +96,24 @@ const Usuarios = () => {
         })
         .eq('id', selectedUser.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Atualizar role na tabela user_roles
+      // Primeiro, deletar role antiga
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', selectedUser.user_id);
+
+      // Inserir nova role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: selectedUser.user_id,
+          role: editFormData.role
+        });
+
+      if (roleError) throw roleError;
 
       toast.success('Usuário atualizado com sucesso!');
       setIsEditDialogOpen(false);

@@ -116,26 +116,32 @@ const Navbar = () => {
   );
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="max-w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
+          {/* Logo */}
+          <div className="flex items-center flex-shrink-0">
             <Link to="/" className="flex items-center gap-2">
-              <Heart className="h-8 w-8 text-primary" />
-              <span className="font-bold text-xl hidden sm:block">Corpo Vivo Conecta</span>
+              <Heart className="h-7 w-7 text-primary" />
+              <span className="font-bold text-lg hidden lg:block">Corpo Vivo Conecta</span>
+              <span className="font-bold text-lg lg:hidden">CVC</span>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-2 overflow-x-auto">
-            <div className="flex items-center space-x-1 flex-shrink-0">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-2 flex-1 mx-4 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1 px-2">
               <NavContent />
             </div>
-            
+          </div>
+
+          {/* User Menu - Desktop */}
+          <div className="hidden md:flex items-center flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
                       {getInitials(profile.full_name)}
                     </AvatarFallback>
                   </Avatar>
@@ -154,7 +160,7 @@ const Navbar = () => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/meu-perfil" className="flex items-center">
+                  <Link to="/meu-perfil" className="flex items-center cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     Perfil
                   </Link>
@@ -176,6 +182,7 @@ const Navbar = () => {
             </DropdownMenu>
           </div>
 
+          {/* Mobile Menu */}
           <div className="md:hidden flex items-center">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
@@ -196,14 +203,14 @@ const Navbar = () => {
 
                 <div className="border-t pt-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
                         {getInitials(profile.full_name)}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{profile.full_name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{profile.full_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
                         {profile.email}
                       </p>
                     </div>
