@@ -1160,6 +1160,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      generate_pastoral_alerts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_current_user_church: {
         Args: Record<PropertyKey, never>
         Returns: string
