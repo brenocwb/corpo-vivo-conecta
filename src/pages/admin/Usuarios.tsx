@@ -15,7 +15,7 @@ interface Profile {
   user_id: string;
   full_name: string;
   email: string;
-  role: 'admin' | 'pastor' | 'lider' | 'membro' | 'missionario';
+  role?: 'admin' | 'pastor' | 'lider' | 'membro' | 'missionario';
   phone?: string;
   address?: string;
   birth_date?: string;
@@ -47,14 +47,34 @@ const Usuarios = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar perfis com suas roles da tabela user_roles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .eq('church_id', profile?.church_id)
         .order('full_name');
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Buscar roles de todos os usuários
+      const userIds = profilesData?.map(p => p.user_id) || [];
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      if (rolesError) throw rolesError;
+
+      // Combinar profiles com suas roles (primeira role por prioridade)
+      const usersWithRoles = profilesData?.map(profile => {
+        const userRole = rolesData?.find(r => r.user_id === profile.user_id);
+        return {
+          ...profile,
+          role: userRole?.role || 'membro'
+        };
+      }) || [];
+
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
       toast.error('Erro ao carregar usuários');
@@ -98,19 +118,16 @@ const Usuarios = () => {
 
       if (profileError) throw profileError;
 
-      // Atualizar role na tabela user_roles
-      // Primeiro, deletar role antiga
-      await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', selectedUser.user_id);
-
-      // Inserir nova role
+      // Correção crítica #2: Usar UPSERT ao invés de DELETE+INSERT
+      // Isso preserva outras roles se houverem múltiplas roles no futuro
       const { error: roleError } = await supabase
         .from('user_roles')
-        .insert({
+        .upsert({
           user_id: selectedUser.user_id,
           role: editFormData.role
+        }, {
+          onConflict: 'user_id,role',
+          ignoreDuplicates: false
         });
 
       if (roleError) throw roleError;
@@ -118,9 +135,11 @@ const Usuarios = () => {
       toast.success('Usuário atualizado com sucesso!');
       setIsEditDialogOpen(false);
       fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar usuário:', error);
-      toast.error('Erro ao atualizar usuário');
+      // Mostrar mensagem de erro mais específica para validações de permissão
+      const errorMessage = error?.message || 'Erro ao atualizar usuário';
+      toast.error(errorMessage);
     }
   };
 

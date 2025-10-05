@@ -30,8 +30,9 @@ interface HouseGroup {
 
 interface Profile {
   id: string;
+  user_id: string;
   full_name: string;
-  role: string;
+  role?: string;
 }
 
 const AdminGrupos = () => {
@@ -70,14 +71,27 @@ const AdminGrupos = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Fetch potential leaders
-      const { data: leadersData } = await supabase
-        .from('profiles')
-        .select('id, full_name, role')
+      // Fetch potential leaders - buscar de user_roles
+      const { data: leaderRoles } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
         .in('role', ['lider', 'pastor', 'missionario']);
 
+      // Buscar profiles dos líderes
+      const leaderUserIds = leaderRoles?.map(r => r.user_id) || [];
+      const { data: leadersData } = await supabase
+        .from('profiles')
+        .select('id, user_id, full_name')
+        .in('user_id', leaderUserIds);
+
+      // Combinar profiles com roles
+      const leadersWithRoles = leadersData?.map(leader => ({
+        ...leader,
+        role: leaderRoles?.find(r => r.user_id === leader.user_id)?.role
+      })) || [];
+
       setGroups(groupsData || []);
-      setLeaders(leadersData || []);
+      setLeaders(leadersWithRoles);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
       toast({

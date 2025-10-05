@@ -122,9 +122,23 @@ const RelatoriosPage = () => {
           .order('created_at', { ascending: false });
 
         if (membersError) throw membersError;
-        setMembers(membersData || []);
 
-        const roleData = (membersData || []).reduce((acc, member) => {
+        // Buscar roles dos membros
+        const memberUserIds = membersData?.map(m => m.user_id) || [];
+        const { data: rolesData } = await supabase
+          .from('user_roles')
+          .select('user_id, role')
+          .in('user_id', memberUserIds);
+
+        // Combinar members com roles
+        const membersWithRoles = membersData?.map(member => ({
+          ...member,
+          role: rolesData?.find(r => r.user_id === member.user_id)?.role || 'membro'
+        })) || [];
+
+        setMembers(membersWithRoles);
+
+        const roleData = membersWithRoles.reduce((acc, member) => {
           const role = member.role;
           acc[role] = (acc[role] || 0) + 1;
           return acc;

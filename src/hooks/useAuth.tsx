@@ -8,7 +8,7 @@ interface Profile {
   full_name: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'lider' | 'membro' | 'pastor' | 'missionario';
+  role?: 'admin' | 'lider' | 'membro' | 'pastor' | 'missionario'; // Role vem de user_roles
   church_id?: string;
   supervisor_id?: string;
   birth_date?: string;
@@ -72,12 +72,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 return;
               }
               
-              // Buscar role principal da nova tabela user_roles
+              // Buscar role principal da tabela user_roles
               const { data: roleData, error: roleError } = await supabase
                 .from('user_roles')
                 .select('role')
                 .eq('user_id', session.user.id)
-                .order('role', { ascending: true }) // Ordenar por prioridade
+                .order('role', { ascending: true })
                 .limit(1)
                 .maybeSingle();
               
@@ -85,10 +85,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 console.error('Error fetching role:', roleError);
               }
               
-              // Combinar perfil com role atualizada
+              // Combinar perfil com role
               const finalProfile = {
                 ...profileData,
-                role: roleData?.role || profileData.role // Usar role de user_roles ou fallback
+                role: roleData?.role || 'membro' // Default para membro se não encontrar role
               };
               
               console.log('Profile with role:', finalProfile);

@@ -21,7 +21,7 @@ interface Profile {
   full_name: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro';
+  role?: 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro';
   church_id: string;
   birth_date?: string;
   address?: string;
@@ -146,14 +146,29 @@ const CadastrosPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Buscar perfis
+      const { data: profilesData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('church_id', profile?.church_id)
         .order('created_at', { ascending: false });
         
       if (error) throw error;
-      setUsers(data || []);
+
+      // Buscar roles de todos os usuários
+      const userIds = profilesData?.map(p => p.user_id) || [];
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      // Combinar profiles com roles
+      const usersWithRoles = profilesData?.map(profile => ({
+        ...profile,
+        role: rolesData?.find(r => r.user_id === profile.user_id)?.role || 'membro'
+      })) || [];
+
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
       toast.error('Erro ao carregar lista de usuários.');
@@ -196,12 +211,20 @@ const CadastrosPage = () => {
   
   const fetchLeaders = async () => {
     if (!profile?.church_id) return;
-      
+    
+    // Buscar líderes a partir de user_roles  
+    const { data: leaderRoles } = await supabase
+      .from('user_roles')
+      .select('user_id, role')
+      .in('role', ['admin', 'pastor', 'missionario', 'lider']);
+    
+    const leaderUserIds = leaderRoles?.map(r => r.user_id) || [];
+    
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name')
+      .select('id, user_id, full_name')
       .eq('church_id', profile.church_id)
-      .in('role', ['admin', 'pastor', 'missionario', 'lider']);
+      .in('user_id', leaderUserIds);
       
     setLeaders(data || []);
   };

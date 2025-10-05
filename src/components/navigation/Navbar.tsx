@@ -45,6 +45,7 @@ const Navbar = () => {
       { href: '/crescimento-espiritual', label: 'Crescimento', icon: TrendingUp },
     ];
 
+    // Role agora vem de user_roles via useAuth
     switch (profile.role) {
       case 'admin':
       case 'pastor':

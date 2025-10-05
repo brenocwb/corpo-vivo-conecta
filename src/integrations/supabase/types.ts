@@ -922,7 +922,6 @@ export type Database = {
           phone: string | null
           prayer_requests: string | null
           private_notes: string | null
-          role: Database["public"]["Enums"]["user_role"]
           spiritual_challenges: string | null
           supervisor_id: string | null
           updated_at: string
@@ -944,7 +943,6 @@ export type Database = {
           phone?: string | null
           prayer_requests?: string | null
           private_notes?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           spiritual_challenges?: string | null
           supervisor_id?: string | null
           updated_at?: string
@@ -966,7 +964,6 @@ export type Database = {
           phone?: string | null
           prayer_requests?: string | null
           private_notes?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           spiritual_challenges?: string | null
           supervisor_id?: string | null
           updated_at?: string
