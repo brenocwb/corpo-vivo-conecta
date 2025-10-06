@@ -26,25 +26,33 @@ export const PastoralAlertsCard = () => {
   const { toast } = useToast();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const alertsPerPage = 5;
 
   useEffect(() => {
     const fetchAlerts = async () => {
       if (!profile?.id) return;
 
       try {
-        const { data, error } = await supabase
+        const from = page * alertsPerPage;
+        const to = from + alertsPerPage;
+
+        const { data, error, count } = await supabase
           .from('alerts')
           .select(`
             *,
             member:profiles!alerts_related_member_id_fkey(full_name, phone)
-          `)
+          `, { count: 'exact' })
           .eq('target_user_id', profile.id)
           .eq('read', false)
           .order('created_at', { ascending: false })
-          .limit(5);
+          .range(from, to - 1);
 
         if (error) throw error;
+        
         setAlerts(data || []);
+        setHasMore((count || 0) > to);
       } catch (error) {
         console.error('Erro ao buscar alertas:', error);
       } finally {
@@ -53,7 +61,7 @@ export const PastoralAlertsCard = () => {
     };
 
     fetchAlerts();
-  }, [profile?.id]);
+  }, [profile?.id, page]);
 
   const markAsRead = async (alertId: string) => {
     try {
@@ -197,6 +205,30 @@ export const PastoralAlertsCard = () => {
                 </div>
               </div>
             ))}
+            
+            {(page > 0 || hasMore) && (
+              <div className="flex justify-between items-center pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                >
+                  Anterior
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Página {page + 1}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={!hasMore}
+                >
+                  Próxima
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

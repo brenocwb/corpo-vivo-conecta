@@ -1159,7 +1159,10 @@ export type Database = {
       }
       generate_pastoral_alerts: {
         Args: Record<PropertyKey, never>
-        Returns: undefined
+        Returns: {
+          alert_type: string
+          count: number
+        }[]
       }
       get_current_user_church: {
         Args: Record<PropertyKey, never>
