@@ -21,7 +21,7 @@ interface Profile {
   full_name: string;
   email: string;
   phone?: string;
-  role?: 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro';
+  role?: string;
   church_id: string;
   birth_date?: string;
   address?: string;
@@ -246,7 +246,6 @@ const CadastrosPage = () => {
             full_name: userForm.full_name,
             email: userForm.email,
             phone: userForm.phone,
-            role: userForm.role as 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro',
             address: userForm.address,
             emergency_contact: userForm.emergency_contact,
             emergency_phone: userForm.emergency_phone,
@@ -258,38 +257,45 @@ const CadastrosPage = () => {
         
         if (profileError) throw profileError;
 
+        // Update role in user_roles table
+        // First delete existing role
+        await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', editingUser.user_id);
+
+        // Then insert new role
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: editingUser.user_id,
+            role: userForm.role as any,
+          } as any);
+
+        if (roleError) throw roleError;
+
         toast.success('Usuário atualizado com sucesso!');
         setEditingUser(null);
       } else {
-        // First create auth user
-        const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: userForm.email,
-          password: tempPassword,
-          email_confirm: true,
-        });
-
-        if (authError) throw authError;
-
-        // Add profile info to the database
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: authData.user.id,
-            church_id: profile.church_id,
-            full_name: userForm.full_name,
+        // Call edge function to create user
+        const { data, error } = await supabase.functions.invoke('create-user', {
+          body: {
             email: userForm.email,
+            full_name: userForm.full_name,
             phone: userForm.phone,
-            role: userForm.role as 'admin' | 'pastor' | 'missionario' | 'lider' | 'membro',
+            role: userForm.role,
+            church_id: profile.church_id,
             address: userForm.address,
             emergency_contact: userForm.emergency_contact,
             emergency_phone: userForm.emergency_phone,
             birth_date: userForm.birth_date || null,
             baptism_date: userForm.baptism_date || null,
             conversion_date: userForm.conversion_date || null,
-          });
+          }
+        });
 
-        if (profileError) throw profileError;
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || 'Erro desconhecido');
 
         toast.success('Usuário criado com sucesso! Uma senha temporária foi enviada para o e-mail.');
       }

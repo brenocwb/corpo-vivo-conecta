@@ -15,7 +15,7 @@ interface Profile {
   user_id: string;
   full_name: string;
   email: string;
-  role?: 'admin' | 'pastor' | 'lider' | 'membro' | 'missionario';
+  role?: string;
   phone?: string;
   address?: string;
   birth_date?: string;
@@ -118,17 +118,20 @@ const Usuarios = () => {
 
       if (profileError) throw profileError;
 
-      // Correção crítica #2: Usar UPSERT ao invés de DELETE+INSERT
-      // Isso preserva outras roles se houverem múltiplas roles no futuro
+      // Update role in user_roles table
+      // First delete existing role
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', selectedUser.user_id);
+
+      // Then insert new role
       const { error: roleError } = await supabase
         .from('user_roles')
-        .upsert({
+        .insert({
           user_id: selectedUser.user_id,
-          role: editFormData.role
-        }, {
-          onConflict: 'user_id,role',
-          ignoreDuplicates: false
-        });
+          role: editFormData.role as any,
+        } as any);
 
       if (roleError) throw roleError;
 
