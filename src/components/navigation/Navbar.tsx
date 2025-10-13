@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUnreadAlerts } from '@/hooks/useUnreadAlerts';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +29,8 @@ import {
   Library,
   TrendingUp,
   Megaphone,
-  UserCheck
+  UserCheck,
+  Bell
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -35,6 +38,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const unreadCount = useUnreadAlerts();
 
   if (!profile) return null;
 
@@ -137,7 +141,27 @@ const Navbar = () => {
           </div>
 
           {/* User Menu - Desktop */}
-          <div className="hidden md:flex items-center flex-shrink-0">
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+            {/* Notifications Badge */}
+            {(profile.role === 'admin' || profile.role === 'pastor' || profile.role === 'lider') && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={() => navigate('/admin/dashboard')}
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
+              </Button>
+            )}
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">

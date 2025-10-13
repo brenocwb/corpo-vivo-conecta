@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_follow_ups: {
+        Row: {
+          alert_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          scheduled_for: string
+          updated_at: string
+        }
+        Insert: {
+          alert_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          scheduled_for: string
+          updated_at?: string
+        }
+        Update: {
+          alert_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          scheduled_for?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_follow_ups_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alert_follow_ups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alert_settings: {
         Row: {
           alert_type: string
@@ -49,6 +100,7 @@ export type Database = {
           created_at: string
           id: string
           message: string
+          priority: Database["public"]["Enums"]["alert_priority"]
           read: boolean
           related_group_id: string | null
           related_member_id: string | null
@@ -60,6 +112,7 @@ export type Database = {
           created_at?: string
           id?: string
           message: string
+          priority?: Database["public"]["Enums"]["alert_priority"]
           read?: boolean
           related_group_id?: string | null
           related_member_id?: string | null
@@ -71,6 +124,7 @@ export type Database = {
           created_at?: string
           id?: string
           message?: string
+          priority?: Database["public"]["Enums"]["alert_priority"]
           read?: boolean
           related_group_id?: string | null
           related_member_id?: string | null
@@ -1194,6 +1248,7 @@ export type Database = {
     }
     Enums: {
       activity_type: "oracao" | "jejum" | "meta" | "tarefa" | "leitura_biblica"
+      alert_priority: "baixa" | "media" | "alta" | "urgente"
       alert_type:
         | "discipulo_ausente"
         | "novo_convertido"
@@ -1335,6 +1390,7 @@ export const Constants = {
   public: {
     Enums: {
       activity_type: ["oracao", "jejum", "meta", "tarefa", "leitura_biblica"],
+      alert_priority: ["baixa", "media", "alta", "urgente"],
       alert_type: [
         "discipulo_ausente",
         "novo_convertido",

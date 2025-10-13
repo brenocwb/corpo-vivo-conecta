@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { AlertTriangle, Bell, Phone, Calendar, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Bell, Phone, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ScheduleAlertDialog } from './ScheduleAlertDialog';
 
 interface Alert {
   id: string;
@@ -14,6 +15,7 @@ interface Alert {
   message: string;
   created_at: string;
   read: boolean;
+  priority: 'baixa' | 'media' | 'alta' | 'urgente';
   related_member_id?: string;
   member?: {
     full_name: string;
@@ -28,6 +30,8 @@ export const PastoralAlertsCard = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
   const alertsPerPage = 5;
 
   useEffect(() => {
@@ -109,6 +113,43 @@ export const PastoralAlertsCard = () => {
     }
   };
 
+  const getPriorityVariant = (priority: string) => {
+    switch (priority) {
+      case 'urgente':
+        return 'destructive' as const;
+      case 'alta':
+        return 'destructive' as const;
+      case 'media':
+        return 'default' as const;
+      case 'baixa':
+        return 'secondary' as const;
+      default:
+        return 'secondary' as const;
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'urgente':
+      case 'alta':
+        return <AlertCircle className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
+  const handleScheduleClick = (alertId: string) => {
+    setSelectedAlertId(alertId);
+    setScheduleDialogOpen(true);
+  };
+
+  const handleScheduled = () => {
+    toast({
+      title: "Agendamento criado",
+      description: "O follow-up foi agendado com sucesso.",
+    });
+  };
+
   if (loading) {
     return (
       <Card>
@@ -149,7 +190,13 @@ export const PastoralAlertsCard = () => {
                   <div className="flex items-center space-x-2">
                     {getAlertIcon(alert.type)}
                     <div className="space-y-1">
-                      <h4 className="text-sm font-medium">{alert.title}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-medium">{alert.title}</h4>
+                        <Badge variant={getPriorityVariant(alert.priority)} className="text-xs flex items-center gap-1">
+                          {getPriorityIcon(alert.priority)}
+                          {alert.priority}
+                        </Badge>
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {alert.message}
                       </p>
@@ -182,13 +229,7 @@ export const PastoralAlertsCard = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        // TODO: Implementar agendamento
-                        toast({
-                          title: "Funcionalidade em desenvolvimento",
-                          description: "O agendamento será implementado em breve.",
-                        });
-                      }}
+                      onClick={() => handleScheduleClick(alert.id)}
                     >
                       <Calendar className="mr-1 h-3 w-3" />
                       Agendar
@@ -232,6 +273,15 @@ export const PastoralAlertsCard = () => {
           </div>
         )}
       </CardContent>
+      
+      {selectedAlertId && (
+        <ScheduleAlertDialog
+          alertId={selectedAlertId}
+          open={scheduleDialogOpen}
+          onOpenChange={setScheduleDialogOpen}
+          onScheduled={handleScheduled}
+        />
+      )}
     </Card>
   );
 };
